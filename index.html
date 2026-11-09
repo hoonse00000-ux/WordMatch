@@ -185,6 +185,7 @@ ol.hl{font-size:clamp(18px,1.8vw,28px);max-width:900px}.msg{font-size:20px;max-w
 <textarea id="twta" class="in" rows="3" placeholder="추가할 단어 (한 줄에 하나)&#10;영어, 한글 뜻&#10;예) volunteer, 자원봉사하다"></textarea>
 <button id="twadd" class="n">단어 추가</button>
 <div class="row" id="twpc"><button id="twpub" class="n">학생끼리 게임 암호 만들기</button><b id="twpcc"></b></div>
+<div class="row" id="twlr"><input id="twlc" class="in" inputmode="numeric" maxlength="4" placeholder="암호로 단어 불러오기" style="width:210px"><button id="twld" class="n">불러오기</button></div>
 <div class="msg" id="twm" style="color:var(--fg)"></div>
 <div id="twl"></div>
 <button id="twok">완료</button></div>
@@ -1662,7 +1663,7 @@ b.className="";try{b.innerHTML=qrSvg(location.href.split(/[?#]/)[0]+"?room="+cod
 // ----- 선생님: 단어 선택 -----
 let TW=null;
 function twLoad(){try{const s=JSON.parse(localStorage.getItem("wm.tw"));if(Array.isArray(s)&&s.length)return s.map(x=>({e:String(x.e),k:String(x.k),on:x.on!==false}))}catch(e){}return DEF.map(x=>({e:x[0],k:x[1],on:true}))}
-function twSave(){try{localStorage.setItem("wm.tw",JSON.stringify(TW))}catch(e){}}
+let twCs=null;function twSave(){try{localStorage.setItem("wm.tw",JSON.stringify(TW))}catch(e){}clearTimeout(twCs);twCs=setTimeout(()=>{if(db&&uid)twPub(true)},1500)}
 const twSel=()=>TW.filter(x=>x.on);
 function twInfo(){const n=twSel().length,q=qFor(n),u=q*q+q+1;return n<7?"단어를 7개 이상 선택해 주세요 (지금 "+n+"개)":"선택 "+n+"개 · 한 판에 "+u+"개 사용 · 카드마다 "+(q+1)+"개"+(n>u?" (매 판 무작위로 골라요)":"")}
 function twRender(){$("twi").textContent=twInfo();const ul=$("twl");ul.textContent="";
@@ -1670,17 +1671,22 @@ TW.forEach((x,i)=>{const r=document.createElement("label");r.className="twr";con
 c.onchange=()=>{x.on=c.checked;twSave();$("twi").textContent=twInfo()};const t=document.createElement("span");t.className="twt";t.textContent=x.e+" — "+x.k;
 const d=document.createElement("button");d.className="n twd";d.textContent="✕";d.onclick=e=>{e.preventDefault();TW.splice(i,1);twSave();twRender()};r.append(c,t,d);ul.append(r)})}
 const getPc=()=>{try{return localStorage.getItem("wm.pc")||""}catch(e){return""}};
-function showPc(){const c=getPc();$("twpcc").textContent=c?"암호 "+c:"";$("twpub").textContent=c?"단어 다시 올리기":"학생끼리 게임 암호 만들기"}
-async function twPub(silent){const sel=twSel(),m=$("twm");if(sel.length<7){if(!silent)m.textContent="단어를 7개 이상 선택해 주세요";return}
+function showPc(){const c=getPc();$("twpcc").textContent=c?"암호 "+c+" (다른 기기에서 불러올 때 사용)":"";$("twpub").textContent=c?"단어 다시 올리기":"학생끼리 게임 암호 만들기"}
+async function twPub(silent){const sel=twSel(),m=$("twm");if(sel.length<7&&!silent){m.textContent="단어를 7개 이상 선택해 주세요";return}
 if(!silent)m.textContent="올리는 중...";
-try{await fbInit();let pc=getPc();const words=sel.map(x=>({e:x.e,k:x.k})),data={owner:uid,words,upd:TS()};let ok=false;
-if(/^\d{4}$/.test(pc)){try{const r=db.collection("wsets").doc(pc),d=await r.get();if(!d.exists||d.data().owner===uid){await r.set(data);ok=true}}catch(e){if(e.code!=="permission-denied")throw e}}
+try{await fbInit();let pc=getPc();const words=sel.map(x=>({e:x.e,k:x.k})),data={owner:uid,words,all:TW.map(x=>({e:x.e,k:x.k,on:!!x.on})),upd:TS()};let ok=false;
+if(/^\d{4}$/.test(pc)){try{await db.collection("wsets").doc(pc).set(data);ok=true}catch(e){if(e.code!=="permission-denied")throw e}}
 for(let i=0;i<30&&!ok;i++){const c=String(1000+Math.random()*9000|0),r=db.collection("wsets").doc(c),d=await r.get();if(d.exists)continue;await r.set(data);pc=c;ok=true}
 if(!ok)throw{code:"full"};
 try{localStorage.setItem("wm.pc",pc)}catch(e){}showPc();renderLobby();
 if(!silent)m.textContent="올렸어요! 학생들에게 암호 "+pc+" 를 알려 주세요 ("+words.length+"개 단어)"}
 catch(e){if(!silent)m.textContent=ferr(e)}}
 $("twpub").onclick=()=>twPub(false);
+$("twld").onclick=async()=>{const c=$("twlc").value.trim(),m=$("twm");if(!/^\d{4}$/.test(c)){m.textContent="숫자 4자리 암호를 입력해 주세요";return}
+m.textContent="불러오는 중...";try{await fbInit();const d=await db.collection("wsets").doc(c).get();if(!d.exists){m.textContent="없는 암호예요";return}
+const v=d.data(),L=Array.isArray(v.all)&&v.all.length?v.all.map(x=>({e:String(x.e),k:String(x.k),on:x.on!==false})):(v.words||[]).map(x=>({e:String(x.e),k:String(x.k),on:true}));
+if(!L.length){m.textContent="이 암호에 저장된 단어가 없어요";return}
+TW=L;try{localStorage.setItem("wm.pc",c)}catch(e){}twSave();twRender();showPc();renderLobby();$("twlc").value="";m.textContent="불러왔어요! ("+L.length+"개 단어)"}catch(e){m.textContent=ferr(e)}};
 $("twb").onclick=()=>{$("twm").textContent="";showPc();twRender();show("tw")};
 $("twok").onclick=()=>{twSave();show("tlobby");renderLobby();if(getPc())twPub(true)};
 $("twall").onclick=()=>{TW.forEach(x=>x.on=true);twSave();twRender()};
