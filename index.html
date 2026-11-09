@@ -1784,4 +1784,7 @@ let lqt;$("lq").onclick=()=>{const b=$("lq");if(b.dataset.a){location.reload()}e
 $("snd").onclick=$("mt").onclick=()=>setMute(!mute);$("snd").textContent=mute?"소리 끔":"소리 켬";$("mt").classList.toggle("mu",mute);
 document.addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest("button"))snd("click")},true);
 document.addEventListener("pointerdown",()=>{actx()},{once:true});
+// 화면별 바로가기 링크: ?p=teacher(선생님) / ?p=student(학생 입장) / ?p=local(학생끼리) / ?p=how(게임 방법)
+(function(){if(/[?&]room=/.test(location.search))return;const m=/[?&]p=(teacher|student|local|how)(?:&|$)/.exec(location.search);if(!m)return;
+const id={teacher:"rt",student:"rs",local:"l2b"}[m[1]];if(id)$(id).click();else show("how")})();
 </script></body></html>
