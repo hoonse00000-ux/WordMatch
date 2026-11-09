@@ -1548,7 +1548,7 @@ if(!pick)ok=false;else{items[wi]=pick;placed.push(pick)}}
 if(ok)return{fs,items}}}}
 fs*=.93}
 const items=t.map((x,i)=>{const m=measure(x,fs,27),a=i?ang0[i-1]:0;return{x:i?50+30*Math.cos(a):50,y:i?50+30*Math.sin(a):50,mw:27,w:m.w,h:m.h,fs,th:th[i]}});return{fs,items}}
-function cardEl(c,lang,cls,onTap,fk){fk=fk||.058;const d=document.createElement("div");d.className="card "+(cls||"");
+function cardEl(c,lang,cls,onTap,fk){fk=fk||.066;const d=document.createElement("div");d.className="card "+(cls||"");
 const r=mb(c.id*977+13),ws=shuffle(c.s,r),off=(r()-.5)*40,n=ws.length,ang=[];
 for(let i=0;i<n-1;i++)ang.push((-90+off+i*360/(n-1))*Math.PI/180);
 const base=r()*360,perm=shuffle(ws.map((_,i)=>i),r),th=ws.map((_,i)=>{let a=(base+perm[i]*360/n+(r()-.5)*24)%360;if(a>180)a-=360;return a*ROTMAX/180});
@@ -1748,8 +1748,8 @@ addEventListener("pagehide",()=>{if(myRef&&sp==="lobby")myRef.delete().catch(()=
 const LCOL=["#ff8a80","#82b1ff"];
 let LP=[],ldeck=[],lcenter=null,lstarted=false,lshow=false,lrun=0;
 const backEl=()=>{const d=document.createElement("div");d.className="card back";d.textContent="?";return d};
-function ldrawP(p,anim){p.hold.textContent="";const c=lshow?cardEl(p.card,pl,"mine",w=>ltap(p,w),.068):backEl();c.style.setProperty("--c",p.color);if(anim)c.classList.add(anim);p.el=c;p.hold.append(c);p.lab.textContent=p.name+" · "+p.score+"장"}
-function ldrawC(anim){const cc=$("lcc");cc.textContent="";const c=lshow&&lcenter?cardEl(lcenter,1-pl,"tg",null,.068):backEl();if(anim)c.classList.add(anim);cc.append(c);$("lleft").textContent="남은 카드 "+(ldeck.length+(lcenter?1:0))}
+function ldrawP(p,anim){p.hold.textContent="";const c=lshow?cardEl(p.card,pl,"mine",w=>ltap(p,w),.077):backEl();c.style.setProperty("--c",p.color);if(anim)c.classList.add(anim);p.el=c;p.hold.append(c);p.lab.textContent=p.name+" · "+p.score+"장"}
+function ldrawC(anim){const cc=$("lcc");cc.textContent="";const c=lshow&&lcenter?cardEl(lcenter,1-pl,"tg",null,.077):backEl();if(anim)c.classList.add(anim);cc.append(c);$("lleft").textContent="남은 카드 "+(ldeck.length+(lcenter?1:0))}
 function lsetup(n1,n2){const g=$("lgame");g.textContent="";lstarted=false;lshow=false;lcenter=null;CW=LW||DEF;ldeck=shuffle(makeDeck(pickSel(),qFor(CW.length)));
 LP=[{name:n1,color:LCOL[0]},{name:n2,color:LCOL[1]}].map(p=>Object.assign(p,{score:1,locked:false,fly:false,card:ldeck.pop()}));
 const mk=(p,up)=>{const s=document.createElement("div");s.className="ls"+(up?" up":"");p.lab=document.createElement("div");p.lab.className="lab";p.lab.style.setProperty("--c",p.color);p.hold=document.createElement("div");s.append(p.lab,p.hold);return s};
