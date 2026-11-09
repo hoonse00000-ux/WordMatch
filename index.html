@@ -133,6 +133,10 @@ ol.hl{font-size:clamp(18px,1.8vw,28px);max-width:900px}.msg{font-size:20px;max-w
 /* 배경: 점 격자 */
 .ov{background:radial-gradient(circle at 1px 1px,rgba(100,85,50,.16) 1.3px,transparent 1.7px) 0 0/22px 22px,linear-gradient(180deg,#f8f5ee,#f1ede3)}
 #l2 .in{width:min(300px,86vw)}
+.ico{width:1.15em;height:1.15em;vertical-align:-.2em;display:inline-block;flex:none}
+.pm .ico{width:1.6em;height:1.6em}.no .ico{width:1.4em;height:1.4em}
+.twd .ico{width:16px;height:16px;vertical-align:middle}
+#lq .ico{width:24px;height:24px;vertical-align:middle}
 </style></head><body>
 
 <!-- 1. 처음 화면: 선생님 / 학생 선택 -->
@@ -208,7 +212,7 @@ ol.hl{font-size:clamp(18px,1.8vw,28px);max-width:900px}.msg{font-size:20px;max-w
 <div class="msg" id="lmsg"></div>
 <button id="lgo">게임 시작</button><button id="lb2" class="n">뒤로</button></div>
 <div class="ov hide" id="lgame"></div>
-<button id="lq" style="display:none">←</button>
+<button id="lq" style="display:none" aria-label="나가기"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
 <div class="ov hide" id="end"></div>
 <div id="count"></div>
 
@@ -1632,15 +1636,23 @@ catch(e){$("tmsg").textContent=ferr(e);show("tauth")}}
 function renderLobby(){const on=students.filter(s=>online(s));$("tn").textContent="입장한 학생 "+on.length+"명";const l=$("slist");l.textContent="";
 on.forEach(s=>{const e=document.createElement("span");e.textContent=s.name;l.append(e)});$("st").disabled=!on.length||!TW||twSel().length<7;$("twsum").textContent=TW?twInfo()+(getPc()?" · 학생끼리 게임 암호 "+getPc():""):""}
 function sorted(){return students.filter(s=>roster&&roster.has(s.id)).sort((a,b)=>b.s-a.s||a.w-b.w||a.name.localeCompare(b.name))}
-function podium(box,a){const med=["🥇","🥈","🥉"],pod=document.createElement("div");pod.className="pod";
+// ===== 직접 그린 아이콘 (이모지 대신) =====
+const ICO={
+medal:(i)=>{const C=[["#f6c64a","#d99a1c","#fff3c4"],["#dfe5e8","#a9b4b9","#ffffff"],["#e3a874","#b8763f","#fbe1c8"]][i]||["#ccc","#999","#eee"];
+return '<svg class="ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 2h6l3 9h-6z" fill="#d8644a"/><path d="M23 2h-6l-3 9h6z" fill="#4f84c4"/><circle cx="16" cy="20" r="10" fill="'+C[1]+'"/><circle cx="16" cy="20" r="7.6" fill="'+C[0]+'"/><path d="M11.5 16.5a6 6 0 0 1 4-2.4" stroke="'+C[2]+'" stroke-width="1.6" stroke-linecap="round" fill="none"/><text x="16" y="24.2" text-anchor="middle" font-size="11" font-weight="700" font-family="sans-serif" fill="'+C[1]+'">'+(i+1)+'</text></svg>'},
+x:()=>'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
+back:()=>'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>',
+fire:()=>'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c.6 3-1.6 4.6-3.2 6.6C7.2 11 6 12.8 6 15.2A6 6 0 0 0 18 15.5c0-2.6-1.3-4.3-2.3-5.6-.3 1.5-1 2.4-2 2.8.5-3.6-.3-7.3-1.7-10.2z" fill="#f07a3a"/><path d="M12 11.5c-.4 1.8-2.6 2.8-2.6 5a2.6 2.6 0 0 0 5.2.1c0-1.6-.9-2.5-1.5-3.3-.2.7-.6 1.1-1 1.2.2-1-.1-2.2-.1-3z" fill="#ffd25e"/></svg>',
+trophy:()=>'<svg class="ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 5h14v6a7 7 0 0 1-14 0z" fill="#f2bf45"/><path d="M9 7H5.5a4 4 0 0 0 4.3 5.6M23 7h3.5a4 4 0 0 1-4.3 5.6" stroke="#d99a1c" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M14 17.5h4l.8 4.5h-5.6z" fill="#d99a1c"/><rect x="10" y="22" width="12" height="4.5" rx="1.5" fill="#8d6a45"/><path d="M12.5 7.5v3.5" stroke="#fff3c4" stroke-width="1.8" stroke-linecap="round"/></svg>'};
+function podium(box,a){const pod=document.createElement("div");pod.className="pod";
 [1,0,2].forEach(i=>{const s=a[i];if(!s)return;const c=document.createElement("div");c.className="pc r"+(i+1);
-c.innerHTML='<div class="pm"></div><div class="pn"></div><div class="ps"></div><div class="pb"></div>';c.children[0].textContent=med[i];c.children[1].textContent=s.name;c.children[2].textContent=s.s+"점";pod.append(c)});
+c.innerHTML='<div class="pm"></div><div class="pn"></div><div class="ps"></div><div class="pb"></div>';c.children[0].innerHTML=ICO.medal(i);c.children[1].textContent=s.name;c.children[2].textContent=s.s+"점";pod.append(c)});
 box.append(pod);const rest=document.createElement("div");rest.className="rest";box.append(rest);a.slice(3).forEach((s,j)=>{const r=document.createElement("div");r.className="rr";r.innerHTML='<b class="no"></b><span class="nm"></span><small></small><b class="pt"></b>';
 r.querySelector(".no").textContent=j+4;r.querySelector(".nm").textContent=s.name;r.querySelector("small").textContent="정답 "+s.k+" · 오답 "+s.w;r.querySelector(".pt").textContent=s.s+"점";rest.append(r)})}
-function renderRank(fin){const box=$("rank"),a=sorted(),mx=Math.max(1,...a.map(s=>s.s)),med=["🥇","🥈","🥉"];box.textContent="";$("tcnt").textContent="참가 "+a.length+"명";box.style.setProperty("--rn",Math.max(a.length,1));if(fin&&a.length){podium(box,a);return}
+function renderRank(fin){const box=$("rank"),a=sorted(),mx=Math.max(1,...a.map(s=>s.s));box.textContent="";$("tcnt").textContent="참가 "+a.length+"명";box.style.setProperty("--rn",Math.max(a.length,1));if(fin&&a.length){podium(box,a);return}
 a.forEach((s,i)=>{const r=document.createElement("div");r.className="rr"+(online(s)||s.fin?"":" off");
 r.innerHTML='<div class="bar"></div><b class="no"></b><span class="nm"></span><small></small><b class="pt"></b>';
-r.firstChild.style.width=(s.s/mx*100)+"%";r.querySelector(".no").textContent=i<3&&s.s>0?med[i]:(i+1);r.querySelector(".nm").textContent=s.name;
+r.firstChild.style.width=(s.s/mx*100)+"%";if(i<3&&s.s>0)r.querySelector(".no").innerHTML=ICO.medal(i);else r.querySelector(".no").textContent=i+1;r.querySelector(".nm").textContent=s.name;
 r.querySelector("small").textContent="정답 "+s.k+" · 오답 "+s.w;r.querySelector(".pt").textContent=s.s+"점";box.append(r)})}
 async function startClass(){const on=students.filter(s=>online(s));if(!on.length||phase!=="lobby")return;phase="count";$("st").disabled=true;
 roster=new Set(on.map(s=>s.id));const used=twSel().map(x=>[x.e,x.k]);if(used.length<7){phase="lobby";$("st").disabled=false;return}CW=used;
@@ -1669,7 +1681,7 @@ function twInfo(){const n=twSel().length,q=qFor(n),u=q*q+q+1;return n<7?"단어�
 function twRender(){$("twi").textContent=twInfo();const ul=$("twl");ul.textContent="";
 TW.forEach((x,i)=>{const r=document.createElement("label");r.className="twr";const c=document.createElement("input");c.type="checkbox";c.checked=x.on;
 c.onchange=()=>{x.on=c.checked;twSave();$("twi").textContent=twInfo()};const t=document.createElement("span");t.className="twt";t.textContent=x.e+" — "+x.k;
-const d=document.createElement("button");d.className="n twd";d.textContent="✕";d.onclick=e=>{e.preventDefault();TW.splice(i,1);twSave();twRender()};r.append(c,t,d);ul.append(r)})}
+const d=document.createElement("button");d.className="n twd";d.innerHTML=ICO.x();d.setAttribute("aria-label","삭제");d.onclick=e=>{e.preventDefault();TW.splice(i,1);twSave();twRender()};r.append(c,t,d);ul.append(r)})}
 const getPc=()=>{try{return localStorage.getItem("wm.pc")||""}catch(e){return""}};
 function showPc(){const c=getPc();$("twpcc").textContent=c?"암호 "+c+" (다른 기기에서 불러올 때 사용)":"";$("twpub").textContent=c?"단어 다시 올리기":"학생끼리 게임 암호 만들기"}
 async function twPub(silent){const sel=twSel(),m=$("twm");if(sel.length<7&&!silent){m.textContent="단어를 7개 이상 선택해 주세요";return}
@@ -1723,7 +1735,7 @@ else if(r.phase==="end"&&sp!=="end")sEnd(r.rank||[])}
 function nextId(prev){let id;do{if(!pool.length)pool=shuffle(cards.map(c=>c.id));id=pool.pop()}while(id===prev);return id}
 function drawS(a,b){const t=$("tgt"),o=$("own");t.textContent="";o.textContent="";
 const tc=cardEl(cards[tgC],1-pl,"tg"),oc=cardEl(cards[myC],pl,"mine",sTap);oc.style.setProperty("--c","#f2c25b");if(a)tc.classList.add("flip");if(b)oc.classList.add("pop");t.append(tc);o.append(oc);
-$("bs").textContent=score+"점";$("bk").textContent=streak>1?"🔥"+streak+"연속":""}
+$("bs").textContent=score+"점";if(streak>1){$("bk").innerHTML=ICO.fire();$("bk").append(streak+"연속")}else $("bk").textContent=""}
 function report(force){if(!myRef)return;const send=()=>{rt=null;myRef.update({s:score,k:okN,w:badN,fin:finished,ts:TS()}).catch(()=>{})};
 if(force){clearTimeout(rt);send();return}if(rt)return;rt=setTimeout(send,2500)}
 async function sStart(r){sp="count";pl=r.pl===0?0:1;CW=r.words.map(x=>[x.e,x.k]);cards=makeDeck(CW.map((_,i)=>i),r.q);pool=[];score=okN=badN=streak=0;locked=false;running=false;finished=false;
@@ -1740,7 +1752,7 @@ report(false)}
 function sEnd(rk){sp="end";running=false;clearInterval(sTimer);clearInterval(hb);unsubR&&unsubR();snd("end");$("count").textContent="";
 const i=rk.findIndex(r=>r.n===me),e=$("end");e.innerHTML='<h1>게임 끝!</h1><p id="er"></p><ol class="res"></ol>';
 $("er").textContent=(i>=0?(i+1)+"등 / "+rk.length+"명 · "+rk[i].s+"점 (정답 "+rk[i].k+" · 오답 "+rk[i].w+")":score+"점 (정답 "+okN+" · 오답 "+badN+")");
-const ol=e.querySelector("ol"),med=["🥇","🥈","🥉"];rk.slice(0,3).forEach((r,j)=>{const li=document.createElement("li");li.textContent=med[j]+" "+r.n+" · "+r.s+"점";ol.append(li)});show("end")}
+const ol=e.querySelector("ol");rk.slice(0,3).forEach((r,j)=>{const li=document.createElement("li");li.innerHTML=ICO.medal(j);li.append(" "+r.n+" · "+r.s+"점");ol.append(li)});show("end")}
 $("jn").onclick=joinRoom;
 addEventListener("pagehide",()=>{if(myRef&&sp==="lobby")myRef.delete().catch(()=>{})});
 
@@ -1756,7 +1768,7 @@ const mk=(p,up)=>{const s=document.createElement("div");s.className="ls"+(up?" u
 const s2=mk(LP[1],true),s1=mk(LP[0],false),lc=document.createElement("div");lc.id="lc";lc.innerHTML='<div id="lcc"></div><div id="lleft"></div>';
 g.append(s2,lc,s1);LP.forEach(p=>ldrawP(p));ldrawC()}
 async function lstart(){pl=lplv;const my=++lrun,n1=$("ln1").value.trim()||"1P",n2=$("ln2").value.trim()||"2P";
-lsetup(n1,n2);show("lgame");$("lq").style.display="block";$("lq").textContent="←";$("lq").dataset.a="";
+lsetup(n1,n2);show("lgame");$("lq").style.display="block";$("lq").innerHTML=ICO.back();$("lq").dataset.a="";
 for(const n of[3,2,1]){$("count").textContent=n;snd("tick");await wait(800);if(my!==lrun)return}$("count").textContent="";
 snd("go");lshow=true;lstarted=true;lcenter=ldeck.pop();LP.forEach(p=>ldrawP(p,"flip"));ldrawC("flip")}
 function flyCard(old,target,color,rot,done){const r=old.getBoundingClientRect(),t=target.getBoundingClientRect(),c=old.cloneNode(true);
@@ -1770,7 +1782,7 @@ if(lcenter)ldrawC("flip");else{lstarted=false;ldrawC();((m)=>setTimeout(()=>m===
 else{snd("bad");p.locked=true;p.el.classList.add("lock");setTimeout(()=>{p.locked=false;p.el&&p.el.classList.remove("lock")},1500)}}
 function lfinish(){lstarted=false;snd("end");const a=LP[0],b=LP[1],win=a.score===b.score?null:(a.score>b.score?a:b),e=$("end");
 e.innerHTML='<h1>게임 끝!</h1><p id="lw"></p><ol class="res"></ol><div class="row"><button id="lagain">다시 하기</button><button id="lhome" class="n">처음으로</button></div>';
-$("lw").textContent=win?"🏆 "+win.name+" 승리!":"무승부!";
+if(win){$("lw").innerHTML=ICO.trophy();$("lw").append(" "+win.name+" 승리!")}else $("lw").textContent="무승부!";
 LP.slice().sort((x,y)=>y.score-x.score).forEach(p=>{const li=document.createElement("li");li.style.setProperty("--c",p.color);li.textContent=p.name+" · "+p.score+"장";e.querySelector("ol").append(li)});
 $("lq").style.display="none";show("end");$("lagain").onclick=lstart;$("lhome").onclick=()=>location.reload()}
 $("l2b").onclick=()=>{$("lmsg").textContent="";try{$("lpc").value=localStorage.getItem("wm.pc2")||"";$("ln1").value=localStorage.getItem("wm.ln1")||"";$("ln2").value=localStorage.getItem("wm.ln2")||""}catch(e){}show("l2")};
@@ -1784,7 +1796,7 @@ const w=(d.data().words||[]).map(x=>[String(x.e),String(x.k)]);
 if(w.length<7){m.textContent="이 암호의 단어가 너무 적어요. 선생님께 알려 주세요";b.disabled=false;return}
 LW=w;try{localStorage.setItem("wm.pc2",c);localStorage.setItem("wm.ln1",$("ln1").value.trim());localStorage.setItem("wm.ln2",$("ln2").value.trim())}catch(e){}
 m.textContent="";b.disabled=false;lstart()}catch(e){m.textContent=ferr(e);b.disabled=false}};
-let lqt;$("lq").onclick=()=>{const b=$("lq");if(b.dataset.a){location.reload()}else{b.dataset.a=1;b.textContent="나가기?";clearTimeout(lqt);lqt=setTimeout(()=>{b.dataset.a="";b.textContent="←"},2000)}};
+let lqt;$("lq").onclick=()=>{const b=$("lq");if(b.dataset.a){location.reload()}else{b.dataset.a=1;b.textContent="나가기?";clearTimeout(lqt);lqt=setTimeout(()=>{b.dataset.a="";b.innerHTML=ICO.back()},2000)}};
 
 (function(){const m=/[?&]room=(\d{4})(?:&|$)/.exec(location.search);if(m){$("code").value=m[1];$("smsg").textContent="";try{$("nick").value=localStorage.getItem("wm.nick")||""}catch(e){}show("sjoin");setTimeout(()=>$("nick").focus(),150)}})();
 $("snd").onclick=$("mt").onclick=()=>setMute(!mute);$("snd").textContent=mute?"소리 끔":"소리 켬";$("mt").classList.toggle("mu",mute);
