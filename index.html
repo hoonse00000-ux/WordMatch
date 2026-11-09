@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>단어 짝 찾기 · 수업용</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <style>
@@ -167,6 +167,8 @@ button.abc .abi .ico{width:46px;height:46px}button.abc b{font-size:15px;font-wei
 .tfr .abi{color:#ffe08a}.tfr .ico{width:1.7em;height:1.7em}
 @keyframes chipIn{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
 @media (min-width:901px) and (orientation:landscape){#rc{font-size:clamp(56px,min(11vw,15vh),210px)}#qr{width:min(26vh,19vw)}#tlobby:not(.hide){grid-template-rows:minmax(0,1fr) auto}.cp,.np{min-height:0;overflow:hidden}}
+html,body,button,.card,.wd,.ov{touch-action:manipulation}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea{-webkit-user-select:text;user-select:text}
 </style></head><body>
 
 <!-- 1. 처음 화면: 선생님 / 학생 선택 -->
@@ -1918,4 +1920,8 @@ document.addEventListener("pointerdown",()=>{actx()},{once:true});
 // 화면별 바로가기 링크: ?p=teacher(선생님) / ?p=student(학생 입장) / ?p=local(학생끼리) / ?p=how(게임 방법)
 (function(){if(/[?&]room=/.test(location.search))return;const m=/[?&]p=(teacher|student|local|how)(?:&|$)/.exec(location.search);if(!m)return;
 const id={teacher:"rt",student:"rs",local:"l2b"}[m[1]];if(id)$(id).click();else show("how")})();
+// 두 번 탭·두 손가락 확대 막기
+document.addEventListener("dblclick",e=>e.preventDefault(),{passive:false});
+["gesturestart","gesturechange"].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+let lastTouch=0;document.addEventListener("touchend",e=>{const n=Date.now();if(n-lastTouch<350&&!e.target.closest("input,textarea"))e.preventDefault();lastTouch=n},{passive:false});
 </script></body></html>
