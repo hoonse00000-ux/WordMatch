@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 수업 방과 참가 학생
+    match /rooms/{code} {
+      allow read, create, update, delete: if request.auth != null;
+      match /players/{pid} {
+        allow read, create, update, delete: if request.auth != null;
+      }
+    }
+
+    // 학생끼리 게임용 단어(선생님 암호)
+    match /wsets/{c} {
+      allow read, create, update, delete: if request.auth != null;
+    }
+  }
+}

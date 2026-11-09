@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>단어 짝 찾기 · 수업용</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6efe0;--sub:#e6d8b9;--fg:#4a3b22;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+html,body{height:100%;margin:0;overflow:hidden;color:var(--fg);font-family:"Jua","Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg)}
+.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:14px;text-align:center;padding:24px;background:var(--bg);z-index:5;overflow-y:auto}
+.ov>:first-child{margin-top:auto}.ov>:last-child{margin-bottom:auto}.ov.hide{display:none}
+h1{margin:0;font-size:34px;font-weight:400}
+p{margin:0;max-width:320px;line-height:1.5;font-size:16px}
+.row{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+button{font:inherit;font-size:20px;border:0;border-radius:14px;padding:10px 22px;background:#f2c25b;color:#2a1b06;cursor:pointer}
+button.n{background:var(--sub);color:var(--fg);padding:10px 16px}
+button.n.on{background:#f2c25b;color:#2a1b06}
+button.big2{font-size:26px;padding:18px 40px;min-width:220px}
+button:disabled{opacity:.45}
+.in{font:inherit;font-size:20px;width:170px;text-align:center;border:3px solid var(--sub);border-radius:14px;padding:8px;background:#fff;color:var(--fg);user-select:text;-webkit-user-select:text}
+.msg{color:#c62828;min-height:20px;max-width:320px;line-height:1.4;font-size:15px}.big{font-size:64px;letter-spacing:8px}
+ol.hl{display:block;list-style:decimal;padding:0 8px 0 26px;font-size:16px;text-align:left;max-width:340px;line-height:1.6;margin:0}
+#count{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:30vmin;pointer-events:none;z-index:9;text-shadow:0 4px 0 #fff}
+
+/* 카드 (원형, 단어 분산) */
+.card{--s:min(80vw,37dvh);width:var(--s);height:var(--s);border-radius:50%;position:relative;background:#fffdf6;flex:none;box-shadow:0 0 0 5px var(--c,#e8d3a0),inset 0 0 0 3px #e3cf9a}
+.wd{position:absolute;transform:translate(-50%,-50%);width:max-content;max-width:28%;text-align:center;font-size:calc(var(--s)*.058);line-height:1.15;padding:calc(var(--s)*.012) calc(var(--s)*.018);border-radius:10px;word-break:keep-all;color:#2a1b06}
+.mine .wd{cursor:pointer}.mine .wd:active{background:#ffe9a8}
+.tg{--s:min(62vw,29dvh)}.tg .wd{color:#12456b}
+.flip{animation:flip .35s ease-out}.pop{animation:pop .3s ease-out}
+.lock{filter:grayscale(1) brightness(.75);animation:shake .3s}
+@keyframes flip{from{transform:rotateY(90deg) scale(.9)}to{transform:none}}
+@keyframes pop{0%{transform:scale(1.1)}100%{transform:none}}
+@keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
+
+/* 학생 화면 */
+#sgame{justify-content:space-evenly;padding:8px;overflow:hidden;gap:6px}
+#sgame>:first-child,#sgame>:last-child{margin:0}
+#bar{display:flex;gap:8px;align-items:center;justify-content:center;width:100%;font-size:17px;flex-wrap:wrap}
+#bar span{background:#fff;border-radius:99px;padding:3px 12px;white-space:nowrap}
+#bar .sc{background:#f2c25b;color:#2a1b06;font-size:20px}
+#fb{min-height:22px;font-size:17px}
+
+/* 선생님 화면 */
+#slist{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:560px;max-height:30dvh;overflow-y:auto}
+#slist span{background:#fff;border-radius:99px;padding:3px 12px;font-size:16px}
+#tgame{justify-content:flex-start;gap:8px;padding:14px}
+#tgame>:first-child{margin-top:0}#tgame>:last-child{margin-bottom:0}
+#ttime{font-size:44px}
+#rank{width:min(640px,96vw);flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.rr{position:relative;display:flex;align-items:center;gap:10px;background:#fffc;border-radius:14px;padding:8px 12px;font-size:20px;text-align:left;overflow:hidden}
+.rr .bar{position:absolute;left:0;top:0;bottom:0;background:var(--sub);opacity:.75;z-index:0;transition:width .4s}
+.rr>*:not(.bar){position:relative;z-index:1}
+.rr .no{width:42px;text-align:center}.rr .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rr .pt{font-size:24px}.rr small{font-size:13px;opacity:.75}.rr.off .nm{opacity:.5}
+ol.res{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:20px}
+/* 한 기기로 2명 */
+#lgame{justify-content:space-between;padding:8px;gap:0;overflow:hidden}
+#lgame>:first-child,#lgame>:last-child{margin:0}
+.ls{display:flex;flex-direction:column;align-items:center;gap:6px}.ls.up{transform:rotate(180deg)}
+.ls .lab{padding:3px 12px;border-radius:99px;font-size:16px;background:var(--c);color:#1a1208;white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}
+#lc{display:flex;flex-direction:column;align-items:center;gap:6px}
+#lleft{font-size:15px;padding:2px 14px;border-radius:99px;background:#fff}
+.card.back{display:flex;align-items:center;justify-content:center;font-size:34px;color:#fff;background:repeating-radial-gradient(circle,#8a5a2b 0 7px,#6d4219 7px 14px)}
+#lgame .mine,#lgame .ls .back{--s:min(66vw,24dvh)}#lgame .tg,#lc .back{--s:min(62vw,27dvh)}
+#lq{position:fixed;left:6px;top:50%;transform:translateY(-50%);z-index:7;min-width:44px;height:44px;padding:0 8px;font-size:15px;border-radius:99px;background:#fff;color:var(--fg);border:3px solid var(--sub)}
+/* 단어 선택 */
+#twl{display:flex;flex-direction:column;gap:5px;width:min(560px,94vw)}
+.twr{display:flex;align-items:center;gap:8px;background:#fff;border-radius:12px;padding:6px 10px;font-size:16px;text-align:left}
+.twr .twt{flex:1;min-width:0;overflow-wrap:anywhere}.twr input{width:22px;height:22px;flex:none}
+.twr .twd{width:auto;padding:2px 10px;font-size:15px}
+#tw>*{flex:none}
+#twta{width:min(420px,92vw);height:108px;min-height:108px;text-align:left;font-size:16px;line-height:1.4;resize:none;display:block}
+#tn{font-size:26px}
+#slist span{background:#fff;box-shadow:0 0 0 2px var(--sub);font-size:20px;padding:4px 16px}
+#tcnt{font-size:20px;background:#fff;border-radius:99px;padding:2px 16px}
+
+/* ===== 전자칠판 디자인 ===== */
+.board{background:#24493b;color:#f4f1e6;border:10px solid #b9895a;border-radius:24px;box-shadow:inset 0 0 0 3px #ffffff22}
+#role h1{font-size:clamp(40px,7vw,96px);padding:.25em .8em;font-weight:400;color:#ffe08a}
+button.big2{font-size:clamp(26px,3vw,48px);padding:.6em 1.6em;min-width:min(70vw,420px)}
+#tlobby:not(.hide){display:grid;grid-template-columns:minmax(300px,.9fr) 1.5fr;grid-template-rows:1fr auto;gap:2.4vh 2.4vw;padding:3vh 3vw;overflow:hidden;text-align:left;align-items:stretch;justify-items:stretch}
+#tlobby>*,#tgame>*{margin:0!important}
+.cp{grid-row:1;grid-column:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5vh;padding:2vh 1.5vw;text-align:center}
+.cl{font-size:clamp(22px,2.6vw,44px);opacity:.85}
+#rc{font-size:clamp(64px,11vw,210px);letter-spacing:.06em;color:#ffe08a;line-height:1}
+.ci{font-size:clamp(16px,1.9vw,32px)!important;max-width:none!important;opacity:.9}
+.np{grid-row:1;grid-column:2;display:flex;flex-direction:column;gap:1.5vh;background:#fffdf6;border-radius:24px;padding:2.4vh 2vw;min-height:0;box-shadow:0 0 0 4px var(--sub)}
+#tn{font-size:clamp(24px,3.4vw,60px);text-align:left;line-height:1.1}
+#slist{display:flex;flex-wrap:wrap;gap:1.2vh 1vw;align-content:flex-start;justify-content:flex-start;overflow-y:auto;max-width:none;max-height:none;flex:1;min-height:0;padding:6px 4px}
+#slist span{font-size:clamp(20px,2.6vw,44px);padding:.15em .7em;background:#f6efe0;box-shadow:0 0 0 3px var(--sub)}
+.bar3{grid-row:2;grid-column:1/-1;display:flex;align-items:center;gap:2vw;flex-wrap:wrap;justify-content:space-between}
+.bar3 #twsum{font-size:clamp(14px,1.5vw,24px);flex:1;min-width:0;text-align:left}
+.bar3 #pls button,.bar3 #dur button{padding:.5em .7em;font-size:clamp(16px,1.6vw,28px)}.bar3 #pls,.bar3 #dur{flex:none}
+.bar3 button{font-size:clamp(18px,2vw,34px);padding:.5em 1em}
+#st{font-size:clamp(24px,2.8vw,48px)!important;padding:.5em 1.4em!important}
+#tgame:not(.hide){display:grid;grid-template-columns:minmax(260px,.7fr) 2fr;gap:2.4vw;padding:3vh 3vw;overflow:hidden;align-items:stretch;justify-items:stretch}
+.gl{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;padding:2vh 1vw;text-align:center}
+#ttl{font-size:clamp(20px,2.4vw,40px);opacity:.85}
+#ttime{font-size:clamp(70px,11vw,200px);line-height:1;color:#ffe08a}
+#tgame.done #ttime{font-size:clamp(36px,5vw,90px)}
+#tcnt{font-size:clamp(20px,2.4vw,40px);background:#ffffff1f;color:#f4f1e6;border-radius:99px;padding:.15em .9em}
+.gl button{font-size:clamp(18px,2vw,32px);padding:.5em 1.2em;background:#f2c25b;color:#2a1b06}
+#rank{width:auto;min-height:0;overflow-y:auto;gap:.25em;padding:0 .5vw;font-size:max(13px,min(44px,2.6vw,calc(33vh / var(--rn,10))))}
+.rr{flex:none;font-size:1em;padding:.3em .7em;border-radius:.5em;background:#fffdf6;box-shadow:0 0 0 3px var(--sub)}
+.rr .bar{background:#f2c25b;opacity:.45}
+.rr .no{width:2.2em}.rr .pt{font-size:1.15em}.rr small{font-size:.6em}
+.pod{display:flex;align-items:flex-end;justify-content:center;gap:2vw;padding:1vh 0 1.4vh;flex:none}
+.pc{display:flex;flex-direction:column;align-items:center;gap:.6vh;flex:1;max-width:24%;min-width:0}
+.pm{font-size:clamp(36px,5vw,90px);line-height:1}
+.pn{font-size:clamp(22px,3vw,52px);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ps{font-size:clamp(20px,2.6vw,44px)}
+.pb{width:100%;border-radius:18px 18px 0 0}
+.pc.r1 .pb{height:17vh;background:#f2c25b}.pc.r2 .pb{height:12vh;background:#cfd6dc}.pc.r3 .pb{height:8vh;background:#d9a066}
+.rest{display:grid;grid-template-columns:1fr 1fr;gap:.25em .8em;flex:none;font-size:clamp(15px,1.7vw,30px)}.rest small{display:none}
+@media (max-width:820px),(orientation:portrait){
+#tlobby:not(.hide){grid-template-columns:1fr;grid-template-rows:auto 1fr auto}.np{grid-column:1;grid-row:2}.cp{grid-row:1}.bar3{grid-row:3}
+#tgame:not(.hide){grid-template-columns:1fr;grid-template-rows:auto 1fr}}
+@media (min-width:900px){
+h1{font-size:clamp(40px,4.6vw,76px)}p{font-size:clamp(18px,1.9vw,30px);max-width:760px}
+button{font-size:clamp(20px,1.9vw,32px);padding:.5em 1.2em}
+.in{font-size:clamp(20px,1.9vw,32px);width:clamp(220px,22vw,360px)}
+ol.hl{font-size:clamp(18px,1.8vw,28px);max-width:900px}.msg{font-size:20px;max-width:700px}
+#twl{width:min(1280px,94vw);display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr))}
+.twr{font-size:22px;padding:10px 14px}#twta{width:min(900px,92vw);font-size:22px;height:140px;min-height:140px}}
+#qr{background:#fff;border-radius:14px;padding:6px;width:min(30vh,19vw);aspect-ratio:1;flex:none}
+#qr svg{width:100%;height:100%;display:block}
+#qr.warn{width:auto;aspect-ratio:auto;max-width:90%;background:#ffffff1f;color:#f4f1e6;font-size:clamp(13px,1.3vw,22px);line-height:1.4;padding:1vh 1vw}
+#mt .off{display:none}#mt.mu .off{display:inline}#mt.mu .on{display:none}#mt svg{display:block;margin:auto}
+#mt{position:fixed;top:10px;right:10px;z-index:60;width:42px;height:42px;border-radius:50%;border:1px solid #e3d3ad;background:rgba(255,253,246,.92);color:#6b5230;padding:0;cursor:pointer;box-shadow:0 2px 8px rgba(90,67,38,.16);transition:transform .15s,box-shadow .15s}
+#mt:hover{box-shadow:0 3px 12px rgba(90,67,38,.26)}#mt:active{transform:scale(.92)}#mt.mu{color:#a79a82}
+
+/* 배경: 점 격자 */
+.ov{background:radial-gradient(circle at 1px 1px,rgba(100,85,50,.16) 1.3px,transparent 1.7px) 0 0/22px 22px,linear-gradient(180deg,#f8f5ee,#f1ede3)}
+#l2 .in{width:min(300px,86vw)}
+</style></head><body>
+
+<!-- 1. 처음 화면: 선생님 / 학생 선택 -->
+<div class="ov" id="role"><h1 class="board">단어 짝 찾기</h1>
+<p>누구로 들어갈까요?</p>
+<button id="rt" class="big2">선생님</button>
+<button id="rs" class="big2" style="background:var(--sub);color:var(--fg)">학생</button>
+<div class="row"><button id="snd" class="n">소리 켬</button><button id="hw" class="n">게임 방법</button></div></div>
+
+<!-- 선생님 확인 -->
+<div class="ov hide" id="tauth"><h1>선생님 확인</h1>
+<p>선생님 코드를 입력해 주세요</p>
+<input id="tcode" class="in" maxlength="12" placeholder="선생님 코드" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false">
+<button id="tok">확인</button>
+<div class="msg" id="tmsg"></div>
+<button id="tb" class="n">뒤로</button></div>
+
+<!-- 학생 입장 -->
+<div class="ov hide" id="sjoin"><h1>학생 입장</h1>
+<p>내 이름과 선생님이 알려 준 방 코드를 입력해요</p>
+<input id="nick" class="in" maxlength="8" placeholder="내 이름">
+<input id="code" class="in" style="width:140px" inputmode="numeric" maxlength="4" placeholder="방 코드">
+<button id="jn">입장</button>
+<div class="msg" id="smsg"></div>
+<button id="l2b" class="n">2명이 한 기기로 하기 (방 코드 없음)</button>
+<button id="sb" class="n">뒤로</button></div>
+
+<div class="ov hide" id="how"><h1>게임 방법</h1>
+<ol class="hl"><li>선생님이 방을 만들고, 학생은 방 코드와 이름을 입력해 입장해요.</li>
+<li>선생님이 시작하면 모두 <b>동시에</b> 시작해요. 각자 자기 카드만 보고 풀어요.</li>
+<li>위 카드는 <b>영어</b>, 아래 내 카드는 <b>한글 뜻</b>이에요. 위 영어 단어 중 뜻이 내 카드에 있는 것이 딱 하나예요. 그 뜻을 눌러요.</li>
+<li>맞히면 <b>+10점</b>, 연속으로 맞히면 보너스 점수가 붙어요(최대 +10).</li>
+<li>틀리면 <b>-5점</b>, 1.5초 동안 멈춰요. 마구 누르면 손해예요!</li>
+<li>제한 시간이 끝나면 점수가 높은 순서로 순위가 정해져요. 순위는 선생님 화면에 나와요.</li>
+<li><b>2명이 한 기기로</b> 할 때는 방 코드 없이 마주 앉아서 해요. 가운데 카드를 먼저 맞히면 그 카드를 가져가고, 카드를 더 많이 모은 사람이 이겨요.</li></ol>
+<button id="hb" class="n">뒤로</button></div>
+
+<button id="mt" aria-label="소리"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3l4.2-3.6a.6.6 0 0 1 1 .45v11.3a.6.6 0 0 1-1 .45L7 14.5H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z" fill="currentColor" fill-opacity=".14"/><g class="on"><path d="M15.6 9.2a4 4 0 0 1 0 5.6"/><path d="M18.2 6.6a7.6 7.6 0 0 1 0 10.8"/></g><path class="off" d="M3.5 3.5l17 17" stroke="#c4553b" stroke-width="2"/></svg></button>
+<div class="ov hide" id="tlobby">
+<section class="cp board"><div class="cl">방 코드</div><div id="rc" class="big"></div><div id="qr"></div><p class="ci">휴대폰으로 QR코드를 찍거나<br>접속해서 방 코드를 입력하세요</p></section>
+<section class="np"><div id="tn">입장한 학생 0명</div><div id="slist"></div></section>
+<div class="bar3"><button id="twb" class="n">단어 선택</button><span id="twsum"></span>
+<div class="row" id="pls"><button class="n on" data-p="1">내 카드: 한글</button><button class="n" data-p="0">내 카드: 영어</button></div>
+<div class="row" id="dur"><button class="n" data-d="60">1분</button><button class="n on" data-d="120">2분</button><button class="n" data-d="180">3분</button><button class="n" data-d="300">5분</button></div>
+<button id="st" disabled>게임 시작</button></div></div>
+
+<div class="ov hide" id="tw"><h1>단어 선택</h1>
+<p id="twi"></p>
+<div class="row"><button id="twall" class="n">전체 선택</button><button id="twnone" class="n">전체 해제</button><button id="twdef" class="n">기본 단어로</button></div>
+<textarea id="twta" class="in" rows="3" placeholder="추가할 단어 (한 줄에 하나)&#10;영어, 한글 뜻&#10;예) volunteer, 자원봉사하다"></textarea>
+<button id="twadd" class="n">단어 추가</button>
+<div class="row" id="twpc"><button id="twpub" class="n">학생끼리 게임 암호 만들기</button><b id="twpcc"></b></div>
+<div class="msg" id="twm" style="color:var(--fg)"></div>
+<div id="twl"></div>
+<button id="twok">완료</button></div>
+
+<div class="ov hide" id="tgame">
+<div class="gl board"><div id="ttl">남은 시간</div><div id="ttime">3:00</div><div id="tcnt"></div><button id="fin">끝내기</button></div>
+<div id="rank"></div></div>
+
+<div class="ov hide" id="slobby"><h1>대기 중...</h1><p id="sw"></p><p>선생님이 시작하면 바로 시작해요!</p></div>
+
+<div class="ov hide" id="sgame"><div id="bar"><span id="bn"></span><span class="sc" id="bs">0점</span><span id="bk"></span><span id="bt"></span></div>
+<div id="tgt"></div><div id="fb"></div><div id="own"></div></div>
+
+<div class="ov hide" id="l2"><h1>2명이 한 기기로</h1>
+<p>마주 앉아서 해요. 가운데 카드의 단어와 같은 뜻의 단어를 내 카드에서 먼저 찾아 누르면 가운데 카드를 가져와요. 틀리면 1.5초 멈춰요!</p>
+<input id="lpc" class="in" inputmode="numeric" maxlength="4" placeholder="선생님 암호 (숫자 4자리)">
+<div class="row" id="lpls" style="justify-content:center"><button class="n on" data-p="1">내 카드: 한글</button><button class="n" data-p="0">내 카드: 영어</button></div>
+<input id="ln1" class="in" maxlength="8" placeholder="아래쪽 이름 (선택)">
+<input id="ln2" class="in" maxlength="8" placeholder="위쪽 이름 (선택)">
+<div class="msg" id="lmsg"></div>
+<button id="lgo">게임 시작</button><button id="lb2" class="n">뒤로</button></div>
+<div class="ov hide" id="lgame"></div>
+<button id="lq" style="display:none">←</button>
+<div class="ov hide" id="end"></div>
+<div id="count"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-firestore-compat.min.js"></script>
+<script>
+/* QRCode for JavaScript (c) 2009 Kazuhiko Arase, MIT license - http://www.d-project.com/ */
+(function(){var M={},C={};function R(n){n=n.replace('./','');if(C[n])return C[n].exports;var m=C[n]={exports:{}};M[n](m,m.exports,R);return m.exports}
+M['QR8bitByte']=function(module,exports,require){
+var QRMode = require('./QRMode');
+
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+
+QR8bitByte.prototype = {
+
+	getLength : function() {
+		return this.data.length;
+	},
+	
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			// not JIS ...
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+
+module.exports = QR8bitByte;
+
+};
+M['QRBitBuffer']=function(module,exports,require){
+function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+
+QRBitBuffer.prototype = {
+
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	
+	getLengthInBits : function() {
+		return this.length;
+	},
+	
+	putBit : function(bit) {
+	
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+	
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+	
+		this.length++;
+	}
+};
+
+module.exports = QRBitBuffer;
+
+};
+M['QRErrorCorrectLevel']=function(module,exports,require){
+module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+
+
+};
+M['QRMaskPattern']=function(module,exports,require){
+module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+
+};
+M['QRMath']=function(module,exports,require){
+var QRMath = {
+
+	glog : function(n) {
+	
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		
+		return QRMath.LOG_TABLE[n];
+	},
+	
+	gexp : function(n) {
+	
+		while (n < 0) {
+			n += 255;
+		}
+	
+		while (n >= 256) {
+			n -= 255;
+		}
+	
+		return QRMath.EXP_TABLE[n];
+	},
+	
+	EXP_TABLE : new Array(256),
+	
+	LOG_TABLE : new Array(256)
+
+};
+	
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+
+module.exports = QRMath;
+
+};
+M['QRMode']=function(module,exports,require){
+module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+
+};
+M['QRPolynomial']=function(module,exports,require){
+var QRMath = require('./QRMath');
+
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+
+	var offset = 0;
+
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+
+QRPolynomial.prototype = {
+
+	get : function(index) {
+		return this.num[index];
+	},
+	
+	getLength : function() {
+		return this.num.length;
+	},
+	
+	multiply : function(e) {
+	
+		var num = new Array(this.getLength() + e.getLength() - 1);
+	
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+	
+		return new QRPolynomial(num, 0);
+	},
+	
+	mod : function(e) {
+	
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+	
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+	
+		var num = new Array(this.getLength() );
+		
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+	
+		// recursive call
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+
+module.exports = QRPolynomial;
+
+};
+M['QRRSBlock']=function(module,exports,require){
+var QRErrorCorrectLevel = require('./QRErrorCorrectLevel');
+
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+
+QRRSBlock.RS_BLOCK_TABLE = [
+
+	// L
+	// M
+	// Q
+	// H
+
+	// 1
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	
+	// 2
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+
+	// 3
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+
+	// 4		
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	
+	// 5
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	
+	// 6
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	
+	// 7		
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	
+	// 8
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	
+	// 9
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	
+	// 10		
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+
+	// 11
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+
+	// 12
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+
+	// 13
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+
+	// 14
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+
+	// 15
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+
+	// 16
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+
+	// 17
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+
+	// 18
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+
+	// 19
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+
+	// 20
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+
+	// 21
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+
+	// 22
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+
+	// 23
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+
+	// 24
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+
+	// 25
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+
+	// 26
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+
+	// 27
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+
+	// 28
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+
+	// 29
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+
+	// 30
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+
+	// 31
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+
+	// 32
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+
+	// 33
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+
+	// 34
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+
+	// 35
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+
+	// 36
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+
+	// 37
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+
+	// 38
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+
+	// 39
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+
+	// 40
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+
+	var length = rsBlock.length / 3;
+	
+	var list = [];
+	
+	for (var i = 0; i < length; i++) {
+
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	
+	return list;
+};
+
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+
+module.exports = QRRSBlock;
+
+};
+M['QRUtil']=function(module,exports,require){
+var QRMode = require('./QRMode');
+var QRPolynomial = require('./QRPolynomial');
+var QRMath = require('./QRMath');
+var QRMaskPattern = require('./QRMaskPattern');
+
+var QRUtil = {
+
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+
+    getBCHDigit : function(data) {
+
+        var digit = 0;
+
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+
+        return digit;
+    },
+
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+
+    getMask : function(maskPattern, i, j) {
+        
+        switch (maskPattern) {
+            
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+
+        var a = new QRPolynomial([1], 0);
+
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+
+        return a;
+    },
+
+    getLengthInBits : function(mode, type) {
+
+        if (1 <= type && type < 10) {
+
+            // 1 - 9
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 27) {
+
+            // 10 - 26
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 41) {
+
+            // 27 - 40
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+
+    getLostPoint : function(qrCode) {
+        
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+
+        
+        // LEVEL1
+        
+        for (row = 0; row < moduleCount; row++) {
+
+            for (col = 0; col < moduleCount; col++) {
+
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+
+                for (var r = -1; r <= 1; r++) {
+
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+
+                    for (var c = -1; c <= 1; c++) {
+
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+
+        // LEVEL2
+
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+
+        // LEVEL3
+
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        // LEVEL4
+        
+        var darkCount = 0;
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+
+        return lostPoint;       
+    }
+
+};
+
+module.exports = QRUtil;
+
+};
+M['index']=function(module,exports,require){
+//---------------------------------------------------------------------
+// QRCode for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//   http://www.opensource.org/licenses/mit-license.php
+//
+// The word "QR Code" is registered trademark of 
+// DENSO WAVE INCORPORATED
+//   http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+// Modified to work in node for this project (and some refactoring)
+//---------------------------------------------------------------------
+
+var QR8bitByte = require('./QR8bitByte');
+var QRUtil = require('./QRUtil');
+var QRPolynomial = require('./QRPolynomial');
+var QRRSBlock = require('./QRRSBlock');
+var QRBitBuffer = require('./QRBitBuffer');
+
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+
+QRCode.prototype = {
+	
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	
+	make : function() {
+		// Calculate automatically typeNumber if provided is < 1
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	
+	makeImpl : function(test, maskPattern) {
+		
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		
+		for (var row = 0; row < this.moduleCount; row++) {
+			
+			this.modules[row] = new Array(this.moduleCount);
+			
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+	
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+	
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+	
+		this.mapData(this.dataCache, maskPattern);
+	},
+
+	setupPositionProbePattern : function(row, col)  {
+		
+		for (var r = -1; r <= 7; r++) {
+			
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			
+			for (var c = -1; c <= 7; c++) {
+				
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	
+	getBestMaskPattern : function() {
+	
+		var minLostPoint = 0;
+		var pattern = 0;
+	
+		for (var i = 0; i < 8; i++) {
+			
+			this.makeImpl(true, i);
+	
+			var lostPoint = QRUtil.getLostPoint(this);
+	
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+	
+		return pattern;
+	},
+	
+	createMovieClip : function(target_mc, instance_name, depth) {
+	
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+	
+		this.make();
+
+		for (var row = 0; row < this.modules.length; row++) {
+			
+			var y = row * cs;
+			
+			for (var col = 0; col < this.modules[row].length; col++) {
+	
+				var x = col * cs;
+				var dark = this.modules[row][col];
+			
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		
+		return qr_mc;
+	},
+
+	setupTimingPattern : function() {
+		
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+	
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	
+	setupPositionAdjustPattern : function() {
+	
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		
+		for (var i = 0; i < pos.length; i++) {
+		
+			for (var j = 0; j < pos.length; j++) {
+			
+				var row = pos[i];
+				var col = pos[j];
+				
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				
+				for (var r = -2; r <= 2; r++) {
+				
+					for (var c = -2; c <= 2; c++) {
+					
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	setupTypeNumber : function(test) {
+	
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+	
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+	
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	
+	setupTypeInfo : function(test, maskPattern) {
+	
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+	
+		// vertical		
+		for (var v = 0; v < 15; v++) {
+	
+			mod = (!test && ( (bits >> v) & 1) === 1);
+	
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+	
+		// horizontal
+		for (var h = 0; h < 15; h++) {
+	
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+	
+		// fixed module
+		this.modules[this.moduleCount - 8][8] = (!test);
+	
+	},
+	
+	mapData : function(data, maskPattern) {
+		
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+	
+			if (col === 6) col--;
+	
+			while (true) {
+	
+				for (var c = 0; c < 2; c++) {
+					
+					if (this.modules[row][col - c] === null) {
+						
+						var dark = false;
+	
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+	
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+	
+						if (mask) {
+							dark = !dark;
+						}
+						
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+	
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+								
+				row += inc;
+	
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+		
+	}
+
+};
+
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	
+	var buffer = new QRBitBuffer();
+	
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+
+	// calc num max data.
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+
+	// end code
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+
+	// padding
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+
+	// padding
+	while (true) {
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+
+QRCode.createBytes = function(buffer, rsBlocks) {
+
+	var offset = 0;
+	
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	
+	for (var r = 0; r < rsBlocks.length; r++) {
+
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		
+		dcdata[r] = new Array(dcCount);
+		
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+
+	}
+	
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+
+	var data = new Array(totalCodeCount);
+	var index = 0;
+
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+
+	return data;
+
+};
+
+module.exports = QRCode;
+
+};
+window.QRLib=R('index');})();
+</script>
+<script>
+// ★ 단어 목록: [영어, 한글 뜻]. 31개 이상이면 매 판 31개를 무작위로 골라요. 마음껏 추가하세요.
+const DEF=[
+["protect","보호하다"],["plastic bag","비닐봉지"],["mistake A for B","A를 B로 착각하다"],["jellyfish","해파리"],
+["reusable","재사용할 수 있는"],["carbon footprint","탄소 발자국"],["to begin with","우선, 먼저"],["climate change","기후 변화"],
+["jar","병, 단지"],["move to","~로 이동하다"],["crawl","기어가다"],["nest","둥지"],
+["sand","모래"],["find one's way","길을 찾아가다"],["confuse","혼란스럽게 하다"],["poor","가난한"],
+["certain","확실한"],["brainstorm","아이디어를 내다"],["do one's part","자기 몫을 하다"],["neighborhood","이웃, 동네"],
+["spread the word","소문을 퍼뜨리다"],["lose one's way","길을 잃다"],["volunteer","자원봉사하다"],["patrol","순찰하다"],
+["silver","은빛의"],["tiny","아주 작은"],["disappear","사라지다"],["remain","남아 있다"],
+["silent","조용한"],["wonder","궁금해하다"],["environment","환경"]];
+let CW=DEF,LW=null;
+
+// ★ Firebase 설정
+const FB={apiKey:"AIzaSyDZnUmQOnlo374nRSi4aU-Q7VMeA0vVym0",authDomain:"wordmatch-5d42b.firebaseapp.com",projectId:"wordmatch-5d42b",appId:"1:544445490034:web:aa67342dd3ad0240f0b3eb"};
+
+// ★ 선생님 코드 확인값 (코드 자체는 파일에 없고, 소금값+반복 해시만 들어 있어요)
+const T_SALT="fcb8beef5dbe72e7",T_HASH="727979fb89342b52f53bab79d8591809a9b234d3d73c0d5aca96c09df17bc007",T_ITER=20000;
+const K256=new Uint32Array([0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+function sha256(m){const l=m.length,nb=(l+9+63)>>6,buf=new Uint8Array(nb*64);buf.set(m);buf[l]=0x80;const dv=new DataView(buf.buffer);dv.setUint32(nb*64-4,(l*8)>>>0);dv.setUint32(nb*64-8,Math.floor(l*8/4294967296));
+let h0=0x6a09e667,h1=0xbb67ae85,h2=0x3c6ef372,h3=0xa54ff53a,h4=0x510e527f,h5=0x9b05688c,h6=0x1f83d9ab,h7=0x5be0cd19;const w=new Uint32Array(64);
+for(let o=0;o<nb*64;o+=64){for(let i=0;i<16;i++)w[i]=dv.getUint32(o+i*4);
+for(let i=16;i<64;i++){const a=w[i-15],b=w[i-2],s0=(a>>>7|a<<25)^(a>>>18|a<<14)^(a>>>3),s1=(b>>>17|b<<15)^(b>>>19|b<<13)^(b>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)|0}
+let a=h0,b=h1,c=h2,d=h3,e=h4,f=h5,g=h6,h=h7;
+for(let i=0;i<64;i++){const S1=(e>>>6|e<<26)^(e>>>11|e<<21)^(e>>>25|e<<7),ch=(e&f)^(~e&g),t1=(h+S1+ch+K256[i]+w[i])|0,S0=(a>>>2|a<<30)^(a>>>13|a<<19)^(a>>>22|a<<10),mj=(a&b)^(a&c)^(b&c),t2=(S0+mj)|0;h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0}
+h0=(h0+a)|0;h1=(h1+b)|0;h2=(h2+c)|0;h3=(h3+d)|0;h4=(h4+e)|0;h5=(h5+f)|0;h6=(h6+g)|0;h7=(h7+h)|0}
+const out=new Uint8Array(32),ov=new DataView(out.buffer);[h0,h1,h2,h3,h4,h5,h6,h7].forEach((x,i)=>ov.setUint32(i*4,x>>>0));return out}
+function teacherOK(c){let h=sha256(new TextEncoder().encode(T_SALT+":"+c.trim().toUpperCase()));for(let i=1;i<T_ITER;i++)h=sha256(h);
+return Array.from(h,x=>x.toString(16).padStart(2,"0")).join("")===T_HASH}
+
+const $=id=>document.getElementById(id);
+const mb=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const shuffle=(a,r=Math.random)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+// 사영평면: 단어 q²+q+1개, 카드 q²+q+1장, 카드마다 q+1개, 어떤 두 카드든 겹치는 단어가 정확히 1개
+const GF4=(a,b)=>{let r=0;for(let i=0;i<2;i++)if(b>>i&1)r^=a<<i;if(r&4)r^=7;return r};
+const qFor=n=>n>=31?5:n>=21?4:n>=13?3:n>=7?2:0;
+const pickSel=()=>{const q=qFor(CW.length);return shuffle(CW.map((_,i)=>i)).slice(0,q*q+q+1)};
+function makeDeck(sel,q){const add=q===4?(a,b)=>a^b:(a,b)=>(a+b)%q,mul=q===4?GF4:(a,b)=>a*b%q,L=[],pt=(x,y)=>x*q+y,I=q*q;
+for(let m=0;m<q;m++)for(let b=0;b<q;b++){const l=[I+m];for(let x=0;x<q;x++)l.push(pt(x,add(mul(m,x),b)));L.push(l)}
+for(let c=0;c<q;c++){const l=[I+q];for(let y=0;y<q;y++)l.push(pt(c,y));L.push(l)}
+const l=[];for(let i=0;i<=q;i++)l.push(I+i);L.push(l);
+return L.map((l,i)=>({id:i,s:l.map(p=>sel[p])}))}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const fmt=s=>Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0");
+
+// 단어가 원 밖으로 나가지 않도록: 크기를 재서 글자를 줄이고, 원 안쪽·다른 단어와 안 겹치는 자리를 찾아요
+const REF=300,LIM=44,mcache={};let meas=null;
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{for(const k in mcache)delete mcache[k]});
+function measure(t,fs,mw){const key=t+"|"+fs+"|"+mw;if(mcache[key])return mcache[key];
+if(!meas){meas=document.createElement("div");meas.style.cssText="position:absolute;left:-9999px;top:0;visibility:hidden;pointer-events:none;width:"+REF+"px;height:"+REF+"px";document.body.appendChild(meas)}
+const e=document.createElement("div");e.className="wd";e.style.cssText="position:static;transform:none;--s:"+REF+"px;font-size:"+(REF*fs)+"px;max-width:"+(mw*REF/100)+"px";e.textContent=t;meas.append(e);
+const r={w:e.offsetWidth/REF*100,h:e.offsetHeight/REF*100,ov:e.scrollWidth>e.clientWidth+1};e.remove();return mcache[key]=r}
+// 카드 한 장의 단어 배치: 가운데 1개 + 둘레는 같은 간격의 각도, 같은 반지름 → 사방으로 고르게 퍼져요
+// 단어마다 글자 방향(회전)도 사방으로 고르게 달라요. ROTMAX가 180이면 완전히 자유롭게, 작게 하면 조금만 기울어요.
+const ROTMAX=180,RAD=Math.PI/180;
+function corners(b){const c=Math.cos(b.th*RAD),s=Math.sin(b.th*RAD),hw=b.w/2,hh=b.h/2;return[[-hw,-hh],[hw,-hh],[hw,hh],[-hw,hh]].map(([u,v])=>[b.x+u*c-v*s,b.y+u*s+v*c])}
+const far=b=>Math.max(...corners(b).map(([x,y])=>Math.hypot(x-50,y-50)));
+function hit(a,b,g){const ca=corners(a),cb=corners(b),ax=[];for(const q of[a,b]){const c=Math.cos(q.th*RAD),s=Math.sin(q.th*RAD);ax.push([c,s],[-s,c])}
+for(const[X,Y]of ax){let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;for(const[x,y]of ca){const p=x*X+y*Y;if(p<a0)a0=p;if(p>a1)a1=p}for(const[x,y]of cb){const p=x*X+y*Y;if(p<b0)b0=p;if(p>b1)b1=p}
+if(a1+g<b0||b1+g<a0)return false}return true}
+function layoutCard(t,ang0,fk,th){const n=t.length;let fs=fk;
+for(let it=0;it<22;it++){
+let mC=null;for(const mw of[34,26]){const m=measure(t[0],fs,mw);if(m.ov)continue;const b={x:50,y:50,w:m.w,h:m.h,th:th[0],mw,fs};if(far(b)<=LIM){mC=b;break}}
+if(mC){const nat=t.map((x,i)=>i?measure(x,fs,100).w:0),order=[];for(let i=1;i<n;i++)order.push(i);order.sort((a,b)=>nat[b]-nat[a]);
+for(const rot of[0,.18,-.18,.36,-.36]){const ang=ang0.map(a=>a+rot),slots=ang.map((_,j)=>j).sort((a,b)=>Math.abs(Math.cos(ang[a]))-Math.abs(Math.cos(ang[b])));
+for(let R=37;R>=20;R--){const items=new Array(n),placed=[mC];items[0]=mC;let ok=true;
+for(let k=0;k<order.length&&ok;k++){const wi=order[k],a=ang[slots[k]],x=50+R*Math.cos(a),y=50+R*Math.sin(a);let pick=null;
+for(const sc of[1,.88,.77]){for(const mw of[34,27,22,17]){const f=fs*sc,m=measure(t[wi],f,mw);if(m.ov)continue;
+const b={x,y,w:m.w,h:m.h,th:th[wi],mw,fs:f};if(far(b)>LIM)continue;if(placed.some(c=>hit(b,c,.8)))continue;pick=b;break}if(pick)break}
+if(!pick)ok=false;else{items[wi]=pick;placed.push(pick)}}
+if(ok)return{fs,items}}}}
+fs*=.93}
+const items=t.map((x,i)=>{const m=measure(x,fs,27),a=i?ang0[i-1]:0;return{x:i?50+30*Math.cos(a):50,y:i?50+30*Math.sin(a):50,mw:27,w:m.w,h:m.h,fs,th:th[i]}});return{fs,items}}
+function cardEl(c,lang,cls,onTap,fk){fk=fk||.058;const d=document.createElement("div");d.className="card "+(cls||"");
+const r=mb(c.id*977+13),ws=shuffle(c.s,r),off=(r()-.5)*40,n=ws.length,ang=[];
+for(let i=0;i<n-1;i++)ang.push((-90+off+i*360/(n-1))*Math.PI/180);
+const base=r()*360,perm=shuffle(ws.map((_,i)=>i),r),th=ws.map((_,i)=>{let a=(base+perm[i]*360/n+(r()-.5)*24)%360;if(a>180)a-=360;return a*ROTMAX/180});
+const th0=(cls||'').indexOf('tg')>=0?th:th.map(()=>0),t=ws.map(w=>CW[w][lang]),L=layoutCard(t,ang,fk,th0);
+ws.forEach((w,i)=>{const e=document.createElement("div"),b=L.items[i];e.className="wd";e.style.left=b.x+"%";e.style.top=b.y+"%";e.style.fontSize="calc(var(--s)*"+b.fs+")";e.style.maxWidth=b.mw+"%";
+e.style.transform="translate(-50%,-50%) rotate("+b.th.toFixed(1)+"deg)";e.dataset.th=b.th.toFixed(1);e.textContent=t[i];
+if(onTap)e.addEventListener("pointerdown",ev=>{ev.preventDefault();onTap(w)});d.appendChild(e)});return d}
+
+let AC,MG,BG,mute=false,bgOn=false,bgT=null,bgStep=0,bgNext=0,curId="role",lastN=0,lastTk=-1;
+try{mute=localStorage.getItem("wm_mute")==="1"}catch(e){}
+function actx(){try{if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();MG=AC.createGain();MG.gain.value=.9;MG.connect(AC.destination);BG=AC.createGain();BG.gain.value=0;BG.connect(AC.destination)}if(AC.state==="suspended")AC.resume();return AC}catch(e){return null}}
+const mf=m=>440*Math.pow(2,(m-69)/12);
+function tone(out,f,at,d,v,type){const o=AC.createOscillator(),g=AC.createGain();o.type=type||"sine";o.frequency.value=f;g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(v,at+.008);g.gain.exponentialRampToValueAtTime(.0001,at+d);o.connect(g);g.connect(out);o.start(at);o.stop(at+d+.03)}
+// 오르골 같은 맑은 소리
+function bell(out,f,at,d,v){tone(out,f,at,d,v);tone(out,f*3,at,d*.35,v*.22)}
+// 효과음: 종소리 + 짧은 멜로디
+function snd(t,n){if(mute||!actx())return;try{const a=AC.currentTime+.01,o=MG;
+if(t==="tick")bell(o,mf(88),a,.12,.22);
+else if(t==="go"){[72,79,84].forEach((m,i)=>bell(o,mf(m+12),a+i*.09,i==2?.5:.14,.3))}
+else if(t==="ok"){const b=79+Math.min(n|0,6)*2;bell(o,mf(b),a,.12,.3);bell(o,mf(b+4),a+.07,.12,.3);bell(o,mf(b+12),a+.14,.4,.32)}
+else if(t==="bad"){tone(o,196,a,.14,.13,"sawtooth");tone(o,147,a+.13,.28,.13,"sawtooth")}
+else if(t==="end"){[72,76,79,84].forEach((m,i)=>bell(o,mf(m+12),a+i*.15,.3,.3));[72,76,79,84].forEach(m=>bell(o,mf(m+12),a+.65,.9,.2))}
+else if(t==="join"){bell(o,mf(84),a,.12,.25);bell(o,mf(91),a+.09,.3,.25)}
+else if(t==="click")tone(o,900,a,.04,.08,"triangle")}catch(e){}}
+// 배경음악: 오르골 느낌의 아기자기한 8마디 반복
+const CH=[[48,[60,64,67]],[45,[57,60,64]],[53,[60,65,69]],[55,[59,62,67]]];
+const ML=[[84,0,79,0,81,0,79,0],[76,0,81,0,84,0,81,0],[81,0,84,0,89,0,84,0],[83,0,86,0,83,0,79,0],
+[79,81,84,0,88,0,84,0],[81,84,88,0,86,0,84,0],[89,0,88,86,84,0,81,0],[83,86,0,83,79,0,0,0]];
+function bgSched(){if(!bgOn||!AC)return;while(bgNext<AC.currentTime+.6){const bar=Math.floor(bgStep/8)%8,st=bgStep%8,ch=CH[bar%4];
+bell(BG,mf(ch[1][[0,1,2,1,0,1,2,1][st]]+12),bgNext,.5,.35);
+if(st===0||st===4)tone(BG,mf(ch[0]),bgNext,.6,.5,"triangle");
+const m=ML[bar][st];if(m)bell(BG,mf(m),bgNext,.7,.6);
+bgNext+=.27;bgStep++}}
+function bgPlay(v){if(mute||!actx())return;BG.gain.cancelScheduledValues(AC.currentTime);BG.gain.setTargetAtTime(v,AC.currentTime,.3);if(!bgOn){bgOn=true;bgNext=AC.currentTime+.1;bgStep=0;bgT=setInterval(bgSched,150)}}
+function bgStop(){bgOn=false;clearInterval(bgT);if(AC&&BG){BG.gain.cancelScheduledValues(AC.currentTime);BG.gain.setTargetAtTime(0,AC.currentTime,.15)}}
+function bgFor(id){curId=id;if(id==="tlobby"||id==="slobby"||id==="tw")bgPlay(.3);else if(id==="tgame"||id==="sgame")bgPlay(.1);else bgStop()}
+function setMute(m){mute=m;try{localStorage.setItem("wm_mute",m?"1":"0")}catch(e){}
+$("snd").textContent=m?"소리 끔":"소리 켬";$("mt").classList.toggle("mu",m);if(m)bgStop();else{bgFor(curId);snd("ok")}}
+function show(id){["role","tauth","sjoin","how","tlobby","tgame","slobby","sgame","end","l2","lgame","tw"].forEach(x=>$(x).classList.toggle("hide",x!==id));bgFor(id)}
+
+// ===== Firebase =====
+let db=null,auth=null,uid=null,inited=false,roomRef=null,code="",gen="";
+const TS=()=>firebase.firestore.FieldValue.serverTimestamp();
+async function fbInit(){if(!window.firebase)throw{code:"load"};
+if(!inited){firebase.initializeApp(FB);auth=firebase.auth();db=firebase.firestore();db.settings({experimentalForceLongPolling:true});inited=true}
+if(!uid){const r=await auth.signInAnonymously();uid=r.user.uid}}
+function ferr(e){const m=ferr0(e),c=e&&e.code||"";return m+" ["+FB.projectId+(c?" · "+c:"")+"]"}
+function ferr0(e){const c=e&&e.code||"";
+if(c==="load")return"Firebase를 불러오지 못했어요. 인터넷 연결이나 차단 설정을 확인해 주세요";
+if(c==="auth/operation-not-allowed"||c==="auth/admin-restricted-operation")return"Firebase 콘솔에서 '익명' 로그인을 켜 주세요";
+if(c==="auth/unauthorized-domain")return"이 주소("+location.hostname+")를 Firebase 승인된 도메인에 추가해 주세요";
+if(c==="permission-denied")return"Firestore 규칙을 게시해 주세요 (권한 없음)";
+if(c==="unavailable"||c==="auth/network-request-failed")return"네트워크 연결이 불안정해요. 잠시 뒤 다시 해 주세요";
+return"오류: "+(c||(e&&e.message)||e)}
+let srvOff=0,lastPing=0;
+const online=(s,lim)=>s.ts&&Date.now()+srvOff-s.ts<(lim||60000);
+
+// ===== 역할 선택 =====
+$("rt").onclick=()=>{$("tmsg").textContent="";$("tcode").value="";if(sessionStorage.getItem("wm.t")==="1"){hostRoom();return}show("tauth");setTimeout(()=>$("tcode").focus(),50)};
+$("rs").onclick=()=>{$("smsg").textContent="";try{$("nick").value=localStorage.getItem("wm.nick")||""}catch(e){}show("sjoin")};
+$("tb").onclick=$("sb").onclick=$("hb").onclick=()=>show("role");
+$("hw").onclick=()=>show("how");
+$("tok").onclick=()=>{const c=$("tcode").value;if(!c.trim()){$("tmsg").textContent="선생님 코드를 입력해 주세요";return}
+$("tmsg").textContent="확인 중...";setTimeout(()=>{if(teacherOK(c)){try{sessionStorage.setItem("wm.t","1")}catch(e){}hostRoom()}else $("tmsg").textContent="코드가 맞지 않아요"},30)};
+$("tcode").addEventListener("keydown",e=>{if(e.key==="Enter")$("tok").click()});
+
+// ===== 선생님(방장) =====
+let pl=1,lplv=1,students=[],roster=null,dur=120,phase="lobby",tm=null,rdirty=false,unsubP=null;
+async function hostRoom(){$("tmsg").textContent="방 만드는 중...";
+try{if(!TW)TW=twLoad();await fbInit();gen=Math.random().toString(36).slice(2,10);roomRef=null;
+for(let i=0;i<30&&!roomRef;i++){code=String(1000+Math.random()*9000|0);const ref=db.collection("rooms").doc(code),d=await ref.get(),ex=d.exists;
+if(ex){const t=d.data().createdAt;if(t&&Date.now()-t.toMillis()<6*3600e3)continue}
+try{await ref.set({owner:uid,gen,phase:"lobby",dur,createdAt:TS()});roomRef=ref}catch(e){if(ex&&e.code==="permission-denied")continue;throw e}}
+if(!roomRef)throw{message:"방 코드를 만들지 못했어요. 다시 시도해 주세요"};
+phase="lobby";students=[];roster=null;$("rc").textContent=code;drawQR();renderLobby();show("tlobby");
+roomRef.onSnapshot(sn=>{const v=sn.data();if(v&&v.ping&&v.ping.toMillis&&!sn.metadata.hasPendingWrites){const ms=v.ping.toMillis();if(ms!==lastPing){lastPing=ms;srvOff=ms-Date.now();if(phase==="lobby")renderLobby()}}});roomRef.update({ping:TS()}).catch(()=>{});
+unsubP=roomRef.collection("players").where("rid","==",gen).onSnapshot(s=>{students=s.docs.map(d=>{const v=d.data({serverTimestamps:"estimate"});return{id:d.id,name:v.name||"학생",s:v.s|0,k:v.k|0,w:v.w|0,fin:!!v.fin,ts:v.ts&&v.ts.toMillis?v.ts.toMillis():0}});
+if(phase==="lobby"){if(students.length>lastN)snd("join");renderLobby()}else rdirty=true;lastN=students.length},e=>{$("tn").textContent=ferr(e)});
+setInterval(()=>{if(phase==="lobby")renderLobby()},10000)}
+catch(e){$("tmsg").textContent=ferr(e);show("tauth")}}
+function renderLobby(){const on=students.filter(s=>online(s));$("tn").textContent="입장한 학생 "+on.length+"명";const l=$("slist");l.textContent="";
+on.forEach(s=>{const e=document.createElement("span");e.textContent=s.name;l.append(e)});$("st").disabled=!on.length||!TW||twSel().length<7;$("twsum").textContent=TW?twInfo()+(getPc()?" · 학생끼리 게임 암호 "+getPc():""):""}
+function sorted(){return students.filter(s=>roster&&roster.has(s.id)).sort((a,b)=>b.s-a.s||a.w-b.w||a.name.localeCompare(b.name))}
+function podium(box,a){const med=["🥇","🥈","🥉"],pod=document.createElement("div");pod.className="pod";
+[1,0,2].forEach(i=>{const s=a[i];if(!s)return;const c=document.createElement("div");c.className="pc r"+(i+1);
+c.innerHTML='<div class="pm"></div><div class="pn"></div><div class="ps"></div><div class="pb"></div>';c.children[0].textContent=med[i];c.children[1].textContent=s.name;c.children[2].textContent=s.s+"점";pod.append(c)});
+box.append(pod);const rest=document.createElement("div");rest.className="rest";box.append(rest);a.slice(3).forEach((s,j)=>{const r=document.createElement("div");r.className="rr";r.innerHTML='<b class="no"></b><span class="nm"></span><small></small><b class="pt"></b>';
+r.querySelector(".no").textContent=j+4;r.querySelector(".nm").textContent=s.name;r.querySelector("small").textContent="정답 "+s.k+" · 오답 "+s.w;r.querySelector(".pt").textContent=s.s+"점";rest.append(r)})}
+function renderRank(fin){const box=$("rank"),a=sorted(),mx=Math.max(1,...a.map(s=>s.s)),med=["🥇","🥈","🥉"];box.textContent="";$("tcnt").textContent="참가 "+a.length+"명";box.style.setProperty("--rn",Math.max(a.length,1));if(fin&&a.length){podium(box,a);return}
+a.forEach((s,i)=>{const r=document.createElement("div");r.className="rr"+(online(s)||s.fin?"":" off");
+r.innerHTML='<div class="bar"></div><b class="no"></b><span class="nm"></span><small></small><b class="pt"></b>';
+r.firstChild.style.width=(s.s/mx*100)+"%";r.querySelector(".no").textContent=i<3&&s.s>0?med[i]:(i+1);r.querySelector(".nm").textContent=s.name;
+r.querySelector("small").textContent="정답 "+s.k+" · 오답 "+s.w;r.querySelector(".pt").textContent=s.s+"점";box.append(r)})}
+async function startClass(){const on=students.filter(s=>online(s));if(!on.length||phase!=="lobby")return;phase="count";$("st").disabled=true;
+roster=new Set(on.map(s=>s.id));const used=twSel().map(x=>[x.e,x.k]);if(used.length<7){phase="lobby";$("st").disabled=false;return}CW=used;
+const q=qFor(used.length),sel=pickSel(),words=sel.map(i=>({e:CW[i][0],k:CW[i][1]}));
+try{await roomRef.update({phase:"count",words,q,dur,pl})}catch(e){phase="lobby";$("st").disabled=false;$("tn").textContent=ferr(e);return}
+show("tgame");$("tgame").classList.remove("done");$("ttl").textContent="남은 시간";$("ttime").textContent=fmt(dur);$("fin").disabled=false;$("fin").textContent="끝내기";$("fin").onclick=manualEnd;renderRank();
+for(const n of[3,2,1]){$("count").textContent=n;snd("tick");await wait(800)}$("count").textContent="";snd("go");if(phase!=="count")return;phase="play";
+const endAt=Date.now()+dur*1000;clearInterval(tm);tm=setInterval(()=>{if(phase!=="play")return;const left=Math.ceil((endAt-Date.now())/1000);
+$("ttime").textContent=left>0?fmt(left):"집계 중...";if(left>0&&left<=5&&left!==lastTk){lastTk=left;snd("tick")}if(rdirty){rdirty=false;renderRank()}
+const all=sorted().every(s=>s.fin||!online(s));if((left<=0&&all)||Date.now()>endAt+5000)endClass()},500)}
+function manualEnd(){if(phase!=="play"&&phase!=="count")return;$("fin").disabled=true;$("ttime").textContent="집계 중...";roomRef.update({phase:"stop"}).catch(()=>{});setTimeout(endClass,2500)}
+function endClass(){if(phase==="end")return;phase="end";clearInterval(tm);renderRank(true);$("tgame").classList.add("done");$("ttl").textContent="게임 끝";const rk=sorted().map(s=>({n:s.name,s:s.s,k:s.k,w:s.w}));
+roomRef.update({phase:"end",rank:rk}).catch(()=>{});snd("end");$("ttime").textContent="최종 순위";$("fin").disabled=false;$("fin").textContent="처음으로";$("fin").onclick=()=>location.reload()}
+// ----- QR코드 -----
+function qrSvg(text){const q=new QRLib(-1,0);q.addData(text);q.make();const n=q.getModuleCount(),m=4,sz=n+m*2;let d="";
+for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))d+="M"+(c+m)+" "+(r+m)+"h1v1h-1z";
+return'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+sz+" "+sz+'" shape-rendering="crispEdges"><rect width="'+sz+'" height="'+sz+'" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>'}
+function drawQR(){const b=$("qr");if(location.protocol==="file:"){b.className="warn";b.textContent="QR코드는 이 파일을 인터넷 주소에 올려서 열었을 때 만들어져요";return}
+b.className="";try{b.innerHTML=qrSvg(location.href.split(/[?#]/)[0]+"?room="+code)}catch(e){b.className="warn";b.textContent="QR코드를 만들지 못했어요. 방 코드로 입장해 주세요"}}
+// ----- 선생님: 단어 선택 -----
+let TW=null;
+function twLoad(){try{const s=JSON.parse(localStorage.getItem("wm.tw"));if(Array.isArray(s)&&s.length)return s.map(x=>({e:String(x.e),k:String(x.k),on:x.on!==false}))}catch(e){}return DEF.map(x=>({e:x[0],k:x[1],on:true}))}
+function twSave(){try{localStorage.setItem("wm.tw",JSON.stringify(TW))}catch(e){}}
+const twSel=()=>TW.filter(x=>x.on);
+function twInfo(){const n=twSel().length,q=qFor(n),u=q*q+q+1;return n<7?"단어를 7개 이상 선택해 주세요 (지금 "+n+"개)":"선택 "+n+"개 · 한 판에 "+u+"개 사용 · 카드마다 "+(q+1)+"개"+(n>u?" (매 판 무작위로 골라요)":"")}
+function twRender(){$("twi").textContent=twInfo();const ul=$("twl");ul.textContent="";
+TW.forEach((x,i)=>{const r=document.createElement("label");r.className="twr";const c=document.createElement("input");c.type="checkbox";c.checked=x.on;
+c.onchange=()=>{x.on=c.checked;twSave();$("twi").textContent=twInfo()};const t=document.createElement("span");t.className="twt";t.textContent=x.e+" — "+x.k;
+const d=document.createElement("button");d.className="n twd";d.textContent="✕";d.onclick=e=>{e.preventDefault();TW.splice(i,1);twSave();twRender()};r.append(c,t,d);ul.append(r)})}
+const getPc=()=>{try{return localStorage.getItem("wm.pc")||""}catch(e){return""}};
+function showPc(){const c=getPc();$("twpcc").textContent=c?"암호 "+c:"";$("twpub").textContent=c?"단어 다시 올리기":"학생끼리 게임 암호 만들기"}
+async function twPub(silent){const sel=twSel(),m=$("twm");if(sel.length<7){if(!silent)m.textContent="단어를 7개 이상 선택해 주세요";return}
+if(!silent)m.textContent="올리는 중...";
+try{await fbInit();let pc=getPc();const words=sel.map(x=>({e:x.e,k:x.k})),data={owner:uid,words,upd:TS()};let ok=false;
+if(/^\d{4}$/.test(pc)){try{const r=db.collection("wsets").doc(pc),d=await r.get();if(!d.exists||d.data().owner===uid){await r.set(data);ok=true}}catch(e){if(e.code!=="permission-denied")throw e}}
+for(let i=0;i<30&&!ok;i++){const c=String(1000+Math.random()*9000|0),r=db.collection("wsets").doc(c),d=await r.get();if(d.exists)continue;await r.set(data);pc=c;ok=true}
+if(!ok)throw{code:"full"};
+try{localStorage.setItem("wm.pc",pc)}catch(e){}showPc();renderLobby();
+if(!silent)m.textContent="올렸어요! 학생들에게 암호 "+pc+" 를 알려 주세요 ("+words.length+"개 단어)"}
+catch(e){if(!silent)m.textContent=ferr(e)}}
+$("twpub").onclick=()=>twPub(false);
+$("twb").onclick=()=>{$("twm").textContent="";showPc();twRender();show("tw")};
+$("twok").onclick=()=>{twSave();show("tlobby");renderLobby();if(getPc())twPub(true)};
+$("twall").onclick=()=>{TW.forEach(x=>x.on=true);twSave();twRender()};
+$("twnone").onclick=()=>{TW.forEach(x=>x.on=false);twSave();twRender()};
+$("twdef").onclick=()=>{if(confirm("기본 단어로 되돌릴까요? 추가한 단어는 사라져요.")){TW=DEF.map(x=>({e:x[0],k:x[1],on:true}));twSave();twRender()}};
+$("twadd").onclick=()=>{let add=0,skip=0,bad=0;
+$("twta").value.split("\n").forEach(L=>{L=L.trim();if(!L)return;let i=L.indexOf("\t");if(i<0)i=L.indexOf(",");if(i<0){bad++;return}
+const e=L.slice(0,i).trim().slice(0,40),k=L.slice(i+1).trim().slice(0,40);if(!e||!k){bad++;return}
+if(TW.some(x=>x.e.toLowerCase()===e.toLowerCase()||x.k===k)){skip++;return}TW.push({e,k,on:true});add++});
+twSave();twRender();$("twm").textContent=add+"개 추가"+(skip?" · "+skip+"개는 같은 단어나 뜻이 이미 있어서 건너뜀":"")+(bad?" · "+bad+"줄은 형식이 달라요 (영어, 뜻)":"");if(add)$("twta").value=""};
+$("st").onclick=startClass;
+$("pls").onclick=e=>{const b=e.target.closest("button");if(!b)return;pl=+b.dataset.p;document.querySelectorAll("#pls .n").forEach(x=>x.classList.toggle("on",x===b))};
+$("lpls").onclick=e=>{const b=e.target.closest("button");if(!b)return;lplv=+b.dataset.p;document.querySelectorAll("#lpls .n").forEach(x=>x.classList.toggle("on",x===b))};
+$("dur").onclick=e=>{const b=e.target.closest("button");if(!b)return;dur=+b.dataset.d;document.querySelectorAll("#dur .n").forEach(x=>x.classList.toggle("on",x===b))};
+
+// ===== 학생 =====
+let me="",myRef=null,cards=[],pool=[],myC=null,tgC=null,score=0,okN=0,badN=0,streak=0,locked=false,running=false,finished=false,sTimer=null,sp="lobby",unsubR=null,hb=null,rt=null;
+async function joinRoom(){code=$("code").value.trim();me=$("nick").value.trim().slice(0,8);
+if(!me){$("smsg").textContent="이름을 입력해요";return}if(!/^\d{4}$/.test(code)){$("smsg").textContent="4자리 숫자 코드를 입력해요";return}
+try{localStorage.setItem("wm.nick",me)}catch(e){}$("jn").disabled=true;const SN=["로그인","방 확인","이름 확인","입장 기록"];let st=0;const say=()=>{$("smsg").textContent="접속 중... ("+(st+1)+"/4 "+SN[st]+")"};say();const wd=setTimeout(()=>{$("smsg").textContent="연결이 오래 걸려요 ("+SN[st]+" 단계에서 멈춤). 학교 인터넷이 Firebase를 막고 있거나 설정이 잘못됐을 수 있어요"},12000);
+try{await fbInit();st=1;say();roomRef=db.collection("rooms").doc(code);const d=await roomRef.get();st=2;say();
+if(!d.exists){$("smsg").textContent="방을 찾을 수 없어요";return}
+const r=d.data(),t=r.createdAt;if(r.phase!=="lobby"||(t&&Date.now()-t.toMillis()>12*3600e3)){$("smsg").textContent="이미 시작했거나 끝난 방이에요";return}
+gen=r.gen;st=2;say();const ps=await roomRef.collection("players").where("rid","==",gen).get();
+const used=ps.docs.filter(x=>x.id!==uid).map(x=>x.data().name);let n=me,b=n,k=2;while(used.includes(n))n=b+k++;me=n;st=3;say();
+myRef=roomRef.collection("players").doc(uid);await myRef.set({rid:gen,name:me,s:0,k:0,w:0,fin:false,ts:TS()});
+sp="lobby";$("sw").textContent=me+" 님, 입장했어요";show("slobby");
+unsubR=roomRef.onSnapshot(s=>{const v=s.data();if(v)onRoom(v)},e=>{$("sw").textContent=ferr(e)});
+hb=setInterval(()=>{myRef.update({ts:TS()}).catch(()=>{})},20000)}
+catch(e){$("smsg").textContent=ferr(e)+" ("+SN[st]+" 단계)"}finally{clearTimeout(wd);$("jn").disabled=false}}
+function onRoom(r){if(r.phase==="count"&&sp==="lobby")sStart(r);
+else if(r.phase==="stop"&&(sp==="play"||sp==="count"))sStop();
+else if(r.phase==="end"&&sp!=="end")sEnd(r.rank||[])}
+function nextId(prev){let id;do{if(!pool.length)pool=shuffle(cards.map(c=>c.id));id=pool.pop()}while(id===prev);return id}
+function drawS(a,b){const t=$("tgt"),o=$("own");t.textContent="";o.textContent="";
+const tc=cardEl(cards[tgC],1-pl,"tg"),oc=cardEl(cards[myC],pl,"mine",sTap);oc.style.setProperty("--c","#f2c25b");if(a)tc.classList.add("flip");if(b)oc.classList.add("pop");t.append(tc);o.append(oc);
+$("bs").textContent=score+"점";$("bk").textContent=streak>1?"🔥"+streak+"연속":""}
+function report(force){if(!myRef)return;const send=()=>{rt=null;myRef.update({s:score,k:okN,w:badN,fin:finished,ts:TS()}).catch(()=>{})};
+if(force){clearTimeout(rt);send();return}if(rt)return;rt=setTimeout(send,2500)}
+async function sStart(r){sp="count";pl=r.pl===0?0:1;CW=r.words.map(x=>[x.e,x.k]);cards=makeDeck(CW.map((_,i)=>i),r.q);pool=[];score=okN=badN=streak=0;locked=false;running=false;finished=false;
+myC=nextId(-1);tgC=nextId(myC);$("bn").textContent=me;$("bt").textContent=fmt(r.dur);$("fb").textContent="";drawS();show("sgame");
+for(const n of[3,2,1]){$("count").textContent=n;snd("tick");await wait(800)}$("count").textContent="";if(sp!=="count")return;snd("go");sp="play";running=true;drawS(1);
+const endAt=Date.now()+r.dur*1000;clearInterval(sTimer);sTimer=setInterval(()=>{const left=Math.ceil((endAt-Date.now())/1000);
+if(left<=0){clearInterval(sTimer);running=false;finished=true;$("bt").textContent="끝!";$("fb").textContent="집계 중... 잠시만요";report(true)}else{$("bt").textContent=fmt(left);if(left<=5&&left!==lastTk){lastTk=left;snd("tick")}}},250)}
+function sStop(){sp="stopped";clearInterval(sTimer);running=false;finished=true;$("count").textContent="";$("bt").textContent="끝!";$("fb").textContent="집계 중... 잠시만요";report(true)}
+function sTap(w){if(!running||locked)return;
+if(cards[tgC].s.includes(w)){const bonus=Math.min(streak,5)*2;score+=10+bonus;okN++;streak++;myC=tgC;tgC=nextId(myC);snd("ok",streak-1);$("fb").textContent="+"+(10+bonus);drawS(1,1)}
+else{score=Math.max(0,score-5);badN++;streak=0;locked=true;snd("bad");$("fb").textContent="-5 틀렸어요!";$("bs").textContent=score+"점";$("bk").textContent="";
+const oc=$("own").firstChild;oc&&oc.classList.add("lock");setTimeout(()=>{locked=false;oc&&oc.classList.remove("lock");$("fb").textContent=""},1500)}
+report(false)}
+function sEnd(rk){sp="end";running=false;clearInterval(sTimer);clearInterval(hb);unsubR&&unsubR();snd("end");$("count").textContent="";
+const i=rk.findIndex(r=>r.n===me),e=$("end");e.innerHTML='<h1>게임 끝!</h1><p id="er"></p><ol class="res"></ol>';
+$("er").textContent=(i>=0?(i+1)+"등 / "+rk.length+"명 · "+rk[i].s+"점 (정답 "+rk[i].k+" · 오답 "+rk[i].w+")":score+"점 (정답 "+okN+" · 오답 "+badN+")");
+const ol=e.querySelector("ol"),med=["🥇","🥈","🥉"];rk.slice(0,3).forEach((r,j)=>{const li=document.createElement("li");li.textContent=med[j]+" "+r.n+" · "+r.s+"점";ol.append(li)});show("end")}
+$("jn").onclick=joinRoom;
+addEventListener("pagehide",()=>{if(myRef&&sp==="lobby")myRef.delete().catch(()=>{})});
+
+// ===== 한 기기로 2명 (방 코드·인터넷 필요 없음) =====
+const LCOL=["#ff8a80","#82b1ff"];
+let LP=[],ldeck=[],lcenter=null,lstarted=false,lshow=false,lrun=0;
+const backEl=()=>{const d=document.createElement("div");d.className="card back";d.textContent="?";return d};
+function ldrawP(p,anim){p.hold.textContent="";const c=lshow?cardEl(p.card,pl,"mine",w=>ltap(p,w),.068):backEl();c.style.setProperty("--c",p.color);if(anim)c.classList.add(anim);p.el=c;p.hold.append(c);p.lab.textContent=p.name+" · "+p.score+"장"}
+function ldrawC(anim){const cc=$("lcc");cc.textContent="";const c=lshow&&lcenter?cardEl(lcenter,1-pl,"tg",null,.068):backEl();if(anim)c.classList.add(anim);cc.append(c);$("lleft").textContent="남은 카드 "+(ldeck.length+(lcenter?1:0))}
+function lsetup(n1,n2){const g=$("lgame");g.textContent="";lstarted=false;lshow=false;lcenter=null;CW=LW||DEF;ldeck=shuffle(makeDeck(pickSel(),qFor(CW.length)));
+LP=[{name:n1,color:LCOL[0]},{name:n2,color:LCOL[1]}].map(p=>Object.assign(p,{score:1,locked:false,fly:false,card:ldeck.pop()}));
+const mk=(p,up)=>{const s=document.createElement("div");s.className="ls"+(up?" up":"");p.lab=document.createElement("div");p.lab.className="lab";p.lab.style.setProperty("--c",p.color);p.hold=document.createElement("div");s.append(p.lab,p.hold);return s};
+const s2=mk(LP[1],true),s1=mk(LP[0],false),lc=document.createElement("div");lc.id="lc";lc.innerHTML='<div id="lcc"></div><div id="lleft"></div>';
+g.append(s2,lc,s1);LP.forEach(p=>ldrawP(p));ldrawC()}
+async function lstart(){pl=lplv;const my=++lrun,n1=$("ln1").value.trim()||"1P",n2=$("ln2").value.trim()||"2P";
+lsetup(n1,n2);show("lgame");$("lq").style.display="block";$("lq").textContent="←";$("lq").dataset.a="";
+for(const n of[3,2,1]){$("count").textContent=n;snd("tick");await wait(800);if(my!==lrun)return}$("count").textContent="";
+snd("go");lshow=true;lstarted=true;lcenter=ldeck.pop();LP.forEach(p=>ldrawP(p,"flip"));ldrawC("flip")}
+function flyCard(old,target,color,rot,done){const r=old.getBoundingClientRect(),t=target.getBoundingClientRect(),c=old.cloneNode(true);
+c.classList.remove("flip","pop","lock");c.style.cssText="position:fixed;margin:0;z-index:6;pointer-events:none;left:"+r.left+"px;top:"+r.top+"px;--s:"+r.width+"px;--c:"+color;document.body.appendChild(c);
+c.animate([{transform:"none"},{transform:"translate("+(t.left+t.width/2-r.left-r.width/2)+"px,"+(t.top+t.height/2-r.top-r.height/2)+"px) scale("+t.width/r.width+") rotate("+rot+"deg)"}],{duration:380,easing:"cubic-bezier(.3,.7,.3,1)",fill:"forwards"}).onfinish=()=>{c.remove();done()}}
+function lfly(p){p.fly=true;const old=$("lcc").querySelector(".card"),up=p.hold.parentElement.classList.contains("up");
+flyCard(old,p.el,p.color,up?180:0,()=>{p.fly=false;ldrawP(p,"pop")})}
+function ltap(p,w){if(!lstarted||p.locked||p.fly||!lcenter)return;
+if(lcenter.s.includes(w)){lfly(p);p.card=lcenter;p.score++;lcenter=ldeck.length?ldeck.pop():null;snd("ok");
+if(lcenter)ldrawC("flip");else{lstarted=false;ldrawC();((m)=>setTimeout(()=>m===lrun&&lfinish(),700))(lrun)}}
+else{snd("bad");p.locked=true;p.el.classList.add("lock");setTimeout(()=>{p.locked=false;p.el&&p.el.classList.remove("lock")},1500)}}
+function lfinish(){lstarted=false;snd("end");const a=LP[0],b=LP[1],win=a.score===b.score?null:(a.score>b.score?a:b),e=$("end");
+e.innerHTML='<h1>게임 끝!</h1><p id="lw"></p><ol class="res"></ol><div class="row"><button id="lagain">다시 하기</button><button id="lhome" class="n">처음으로</button></div>';
+$("lw").textContent=win?"🏆 "+win.name+" 승리!":"무승부!";
+LP.slice().sort((x,y)=>y.score-x.score).forEach(p=>{const li=document.createElement("li");li.style.setProperty("--c",p.color);li.textContent=p.name+" · "+p.score+"장";e.querySelector("ol").append(li)});
+$("lq").style.display="none";show("end");$("lagain").onclick=lstart;$("lhome").onclick=()=>location.reload()}
+$("l2b").onclick=()=>{$("lmsg").textContent="";try{$("lpc").value=localStorage.getItem("wm.pc2")||"";$("ln1").value=localStorage.getItem("wm.ln1")||"";$("ln2").value=localStorage.getItem("wm.ln2")||""}catch(e){}show("l2")};
+$("lb2").onclick=()=>show("sjoin");
+$("lgo").onclick=async()=>{const c=$("lpc").value.trim(),m=$("lmsg"),b=$("lgo");
+if(!/^\d{4}$/.test(c)){m.textContent="선생님이 알려 준 숫자 4자리 암호를 입력해 주세요";return}
+b.disabled=true;m.textContent="단어를 불러오는 중...";
+try{await fbInit();const d=await db.collection("wsets").doc(c).get();
+if(!d.exists){m.textContent="없는 암호예요. 다시 확인해 주세요";b.disabled=false;return}
+const w=(d.data().words||[]).map(x=>[String(x.e),String(x.k)]);
+if(w.length<7){m.textContent="이 암호의 단어가 너무 적어요. 선생님께 알려 주세요";b.disabled=false;return}
+LW=w;try{localStorage.setItem("wm.pc2",c);localStorage.setItem("wm.ln1",$("ln1").value.trim());localStorage.setItem("wm.ln2",$("ln2").value.trim())}catch(e){}
+m.textContent="";b.disabled=false;lstart()}catch(e){m.textContent=ferr(e);b.disabled=false}};
+let lqt;$("lq").onclick=()=>{const b=$("lq");if(b.dataset.a){location.reload()}else{b.dataset.a=1;b.textContent="나가기?";clearTimeout(lqt);lqt=setTimeout(()=>{b.dataset.a="";b.textContent="←"},2000)}};
+
+(function(){const m=/[?&]room=(\d{4})(?:&|$)/.exec(location.search);if(m){$("code").value=m[1];$("smsg").textContent="";try{$("nick").value=localStorage.getItem("wm.nick")||""}catch(e){}show("sjoin");setTimeout(()=>$("nick").focus(),150)}})();
+$("snd").onclick=$("mt").onclick=()=>setMute(!mute);$("snd").textContent=mute?"소리 끔":"소리 켬";$("mt").classList.toggle("mu",mute);
+document.addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest("button"))snd("click")},true);
+document.addEventListener("pointerdown",()=>{actx()},{once:true});
+</script></body></html>
