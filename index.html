@@ -149,7 +149,7 @@ ol.hl{font-size:clamp(18px,1.8vw,28px);max-width:900px}.msg{font-size:20px;max-w
 .abp{background:#fffdf7;border-radius:22px;padding:18px 14px;width:min(94vw,520px);text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.3)}
 .abp h2{margin:0 0 14px;font-size:20px;font-weight:400}
 .abcs{display:flex;gap:10px;justify-content:center;perspective:600px}
-button.abc{width:31%;aspect-ratio:3/4;border-radius:16px;background:linear-gradient(140deg,#7a5fd0,#3b6fb0);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 6px;box-shadow:0 4px 0 #2d2a6b;border:3px solid #fff;font-family:inherit}
+button.abc{width:31%;aspect-ratio:3/4;border-radius:16px;background:#6b4fb8;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 6px;box-shadow:0 4px 0 #4a3388;border:3px solid #6b4fb8;font-family:inherit}
 button.abc .abq{width:56px;height:56px}
 button.abc.rv{background:#fff;color:var(--fg);border-color:#e6d8b9;box-shadow:0 3px 0 #e6d8b9;animation:abflip .45s ease-out}
 button.abc.dim{opacity:.38;transform:scale(.9)}
@@ -217,7 +217,7 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,
 <button id="st" disabled>게임 시작</button></div></div>
 
 <div class="ov hide" id="abs"><h1>능력 설정</h1>
-<p>3장을 연속으로 맞힐 때마다 능력 카드 3장 중 1장을 골라요.<br>게임에 나올 능력을 골라 주세요.</p>
+<p>2장을 연속으로 맞힐 때마다 능력 카드 3장 중 1장을 골라요.<br>게임에 나올 능력을 골라 주세요.</p>
 <div class="row"><button id="aball" class="n">전체 선택</button><button id="abnone" class="n">전체 해제</button></div>
 <div id="abl"></div><div class="msg" id="abm" style="color:var(--fg)"></div><button id="abok">완료</button></div>
 
@@ -1860,7 +1860,7 @@ const endAt=Date.now()+r.dur*1000;clearInterval(sTimer);sTimer=setInterval(()=>{
 if(left<=0){clearInterval(sTimer);running=false;finished=true;abClose();inkOff();$("bt").textContent="끝!";$("fb").textContent="집계 중... 잠시만요";report(true)}else{$("bt").textContent=fmt(left);if(left<=5&&left!==lastTk){lastTk=left;snd("tick")}}},250)}
 function sStop(){sp="stopped";abClose();inkOff();clearInterval(sTimer);running=false;finished=true;$("count").textContent="";$("bt").textContent="끝!";$("fb").textContent="집계 중... 잠시만요";report(true)}
 function sTap(w){if(!running||locked||picking)return;
-if(cards[tgC].s.includes(w)){const bonus=Math.min(streak,5)*2,base=eff.dbl>0?20:10;if(eff.dbl>0)eff.dbl--;if(eff.easy>0)eff.easy--;if(eff.small>0)eff.small--;score+=base+bonus;okN++;streak++;myC=tgC;tgC=nextId(myC);snd("ok",streak-1);$("fb").textContent="+"+(base+bonus);drawS(1,1);if(ABM&&streak%3===0)abOpen()}
+if(cards[tgC].s.includes(w)){const bonus=Math.min(streak,5)*2,base=eff.dbl>0?20:10;if(eff.dbl>0)eff.dbl--;if(eff.easy>0)eff.easy--;if(eff.small>0)eff.small--;score+=base+bonus;okN++;streak++;myC=tgC;tgC=nextId(myC);snd("ok",streak-1);$("fb").textContent="+"+(base+bonus);drawS(1,1);if(ABM&&streak%2===0)abOpen()}
 else{score=Math.max(0,score-5);badN++;streak=0;locked=true;snd("bad");$("fb").textContent="-5 틀렸어요!";$("bs").textContent=score+"점";$("bk").textContent="";
 const oc=$("own").firstChild;oc&&oc.classList.add("lock");setTimeout(()=>{locked=false;oc&&oc.classList.remove("lock");$("fb").textContent=""},1500)}
 report(false)}
