@@ -1594,7 +1594,7 @@ function cardEl(c,lang,cls,onTap,fk,opt){fk=fk||.066;const d=document.createElem
 const r=mb(c.id*977+13),ws=shuffle(c.s,r),off=(r()-.5)*40,n=ws.length,ang=[];
 for(let i=0;i<n-1;i++)ang.push((-90+off+i*360/(n-1))*Math.PI/180);
 const base=r()*360,perm=shuffle(ws.map((_,i)=>i),r),th=ws.map((_,i)=>{let a=(base+perm[i]*360/n+(r()-.5)*24)%360;if(a>180)a-=360;return a*ROTMAX/180});
-const uni=!!(opt&&opt.uni),th0=(!uni&&(cls||'').indexOf('tg')>=0)?th:th.map(()=>0),t=ws.map(w=>CW[w][lang]),L=layoutCard(t,ang,fk,th0,uni);
+const uni=!!(opt&&opt.uni),th0=(!uni&&!(opt&&opt.flat)&&(cls||'').indexOf('tg')>=0)?th:th.map(()=>0),t=ws.map(w=>CW[w][lang]),L=layoutCard(t,ang,fk,th0,uni);
 ws.forEach((w,i)=>{const e=document.createElement("div"),b=L.items[i];e.className="wd";e.style.left=b.x+"%";e.style.top=b.y+"%";e.style.fontSize="calc(var(--s)*"+b.fs+")";e.style.maxWidth=b.mw+"%";
 e.style.transform="translate(-50%,-50%) rotate("+b.th.toFixed(1)+"deg)";e.dataset.th=b.th.toFixed(1);e.textContent=t[i];
 if(onTap)e.addEventListener("pointerdown",ev=>{ev.preventDefault();onTap(w)});d.appendChild(e)});return d}
@@ -1849,7 +1849,7 @@ else if(r.phase==="stop"&&(sp==="play"||sp==="count"))sStop();
 else if(r.phase==="end"&&sp!=="end")sEnd(r.rank||[])}
 function nextId(prev){let id;do{if(!pool.length)pool=shuffle(cards.map(c=>c.id));id=pool.pop()}while(id===prev);return id}
 function drawS(a,b){const t=$("tgt"),o=$("own");t.textContent="";o.textContent="";
-if(eff.small&&Date.now()>eff.smallUntil)eff.small=0;const fk=eff.small?.038:.066,op={uni:eff.easy>0},tc=cardEl(cards[tgC],1-pl,"tg",null,fk,op),oc=cardEl(cards[myC],pl,"mine",sTap,fk,op);abStat();oc.style.setProperty("--c","#f2c25b");if(a)tc.classList.add("flip");if(b)oc.classList.add("pop");t.append(tc);o.append(oc);
+if(eff.small&&Date.now()>eff.smallUntil)eff.small=0;const fk=eff.small?.038:.066,op={uni:eff.easy>0,flat:true},tc=cardEl(cards[tgC],1-pl,"tg",null,fk,op),oc=cardEl(cards[myC],pl,"mine",sTap,fk,op);abStat();oc.style.setProperty("--c","#f2c25b");if(a)tc.classList.add("flip");if(b)oc.classList.add("pop");t.append(tc);o.append(oc);
 $("bs").textContent=score+"점";if(streak>1){$("bk").innerHTML=ICO.fire();$("bk").append(streak+"연속")}else $("bk").textContent=""}
 function report(force){if(!myRef)return;const send=()=>{rt=null;myRef.update({s:score,k:okN,w:badN,fin:finished,ts:TS()}).catch(()=>{})};
 if(force){clearTimeout(rt);send();return}if(rt)return;rt=setTimeout(send,2500)}
