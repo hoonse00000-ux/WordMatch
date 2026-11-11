@@ -138,7 +138,7 @@ ol.hl{font-size:clamp(18px,1.8vw,28px);max-width:900px}.msg{font-size:20px;max-w
 .twd .ico{width:16px;height:16px;vertical-align:middle}
 #lq .ico{width:24px;height:24px;vertical-align:middle}
 
-/* 능력 모드 */
+/* 아이템 모드 */
 #abs>*{flex:none}#abl{display:flex;flex-direction:column;gap:6px;width:min(620px,94vw)}
 .abr{display:flex;align-items:center;gap:12px;padding:8px 14px;background:#fff;border-radius:14px;box-shadow:0 0 0 2px var(--line);text-align:left;cursor:pointer}
 .abr input{width:22px;height:22px;flex:none}.abr .ico{width:36px;height:36px}.abtx{display:flex;flex-direction:column}.abtx small{color:#7a6a4d;font-size:13px}
@@ -212,12 +212,12 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,
 <section class="np"><div id="tn">입장한 학생 0명</div><div id="slist"></div></section>
 <div class="bar3"><button id="twb" class="n">단어 선택</button><span id="twsum"></span>
 <div class="row" id="pls"><button class="n on" data-p="1">내 카드: 한글</button><button class="n" data-p="0">내 카드: 영어</button></div>
-<div class="row" id="gm"><button class="n on" data-m="n">일반 모드</button><button class="n" data-m="ab">능력 모드</button><button class="n" id="abb" style="display:none">능력 설정</button></div>
+<div class="row" id="gm"><button class="n on" data-m="n">일반 모드</button><button class="n" data-m="ab">아이템 모드</button><button class="n" id="abb" style="display:none">아이템 설정</button></div>
 <div class="row" id="dur"><button class="n" data-d="60">1분</button><button class="n on" data-d="120">2분</button><button class="n" data-d="180">3분</button><button class="n" data-d="300">5분</button></div>
 <button id="st" disabled>게임 시작</button></div></div>
 
-<div class="ov hide" id="abs"><h1>능력 설정</h1>
-<p>2장을 연속으로 맞힐 때마다 능력 카드 3장 중 1장을 골라요.<br>게임에 나올 능력을 골라 주세요.</p>
+<div class="ov hide" id="abs"><h1>아이템 설정</h1>
+<p>2장을 연속으로 맞힐 때마다 아이템 카드 3장 중 1장을 골라요.<br>게임에 나올 아이템을 골라 주세요.</p>
 <div class="row"><button id="aball" class="n">전체 선택</button><button id="abnone" class="n">전체 해제</button></div>
 <div id="abl"></div><div class="msg" id="abm" style="color:var(--fg)"></div><button id="abok">완료</button></div>
 
@@ -1672,7 +1672,7 @@ if(phase==="lobby"){if(students.length>lastN)snd("join");renderLobby()}else rdir
 setInterval(()=>{if(phase==="lobby")renderLobby()},10000)}
 catch(e){$("tmsg").textContent=ferr(e);show("tauth")}}
 function renderLobby(){const on=students.filter(s=>online(s));$("tn").textContent="입장한 학생 "+on.length+"명";const l=$("slist");l.textContent="";
-on.forEach(s=>{const e=document.createElement("span");e.textContent=s.name;l.append(e)});$("st").disabled=!on.length||!TW||twSel().length<7;$("twsum").textContent=TW?twInfo()+(getPc()?" · 학생끼리 게임 암호 "+getPc():"")+(gmode==="ab"?" · 능력 모드 ("+ABON.length+"개)":""):""}
+on.forEach(s=>{const e=document.createElement("span");e.textContent=s.name;l.append(e)});$("st").disabled=!on.length||!TW||twSel().length<7;$("twsum").textContent=TW?twInfo()+(getPc()?" · 학생끼리 게임 암호 "+getPc():"")+(gmode==="ab"?" · 아이템 모드 ("+ABON.length+"개)":""):""}
 function sorted(){return students.filter(s=>roster&&roster.has(s.id)).sort((a,b)=>b.s-a.s||a.w-b.w||a.name.localeCompare(b.name))}
 // ===== 직접 그린 아이콘 (이모지 대신) =====
 const ICO={
@@ -1705,7 +1705,7 @@ function manualEnd(){if(phase!=="play"&&phase!=="count")return;$("fin").disabled
 function endClass(){if(phase==="end")return;phase="end";unsubT&&unsubT();clearInterval(tm);renderRank(true);$("tgame").classList.add("done");$("ttl").textContent="게임 끝";const rk=sorted().map(s=>({n:s.name,s:s.s,k:s.k,w:s.w}));
 roomRef.update({phase:"end",rank:rk}).catch(()=>{});snd("end");$("ttime").textContent="최종 순위";$("fin").disabled=false;$("fin").textContent="처음으로";$("fin").onclick=()=>location.reload()}
 
-// ===== 능력 모드 =====
+// ===== 아이템 모드 =====
 // w: 나올 확률(가중치). 점수 바꾸기·2배가 가장 드물고, 그다음 방해(글자 작게·먹물), 나머지는 비슷하게
 const AB={
 swap:{n:"점수 바꾸기",d:"친구 한 명을 골라 점수를 서로 바꿔요",t:1,k:"atk",w:1},
@@ -1730,27 +1730,27 @@ case"dbl":return W('<path d="M24 8l4.4 8.9 9.8 1.4-7.1 6.9 1.7 9.8L24 30.4l-8.8 
 case"easy":return W('<circle cx="16" cy="26" r="6"/><circle cx="32" cy="26" r="6"/><path d="M22 25.5c1.3-1.4 2.7-1.4 4 0M10 24l-2-6M38 24l2-6"/>');
 case"ink":return W('<path d="M24 10c4.3 6.3 8.5 10.8 8.5 16a8.5 8.5 0 0 1-17 0c0-5.2 4.2-9.7 8.5-16z" fill="currentColor" stroke="none"/><circle cx="12" cy="34" r="2.3" fill="currentColor" stroke="none"/><circle cx="37" cy="35" r="1.7" fill="currentColor" stroke="none"/><circle cx="35" cy="14" r="1.3" fill="currentColor" stroke="none"/>');}
 return T("?",18)};
-// 선생님: 모드와 능력 설정
+// 선생님: 모드와 아이템 설정
 let gmode="n",unsubT=null,ABON=(()=>{try{const v=JSON.parse(localStorage.getItem("wm.ab"));if(Array.isArray(v))return v.filter(x=>AB[x])}catch(e){}return ABK.slice()})();
-function abSave(){try{localStorage.setItem("wm.ab",JSON.stringify(ABON))}catch(e){}$("abm").textContent="켜진 능력 "+ABON.length+"개"}
+function abSave(){try{localStorage.setItem("wm.ab",JSON.stringify(ABON))}catch(e){}$("abm").textContent="켜진 아이템 "+ABON.length+"개"}
 function abRender(){const box=$("abl");box.textContent="";ABK.forEach(k=>{const a=AB[k],li=document.createElement("label");li.className="abr";const c=document.createElement("input");c.type="checkbox";c.checked=ABON.includes(k);
 c.onchange=()=>{ABON=ABK.filter(x=>x===k?c.checked:ABON.includes(x));abSave()};const ic=document.createElement("span");ic.className="abi "+a.k;ic.innerHTML=ICO.ab(k);
 const t=document.createElement("span");t.className="abtx";const b=document.createElement("b"),sm=document.createElement("small");b.textContent=a.n;sm.textContent=a.d+" · "+["","드물게","가끔","자주"][a.w];t.append(b,sm);li.append(c,ic,t);box.append(li)});abSave()}
 $("gm").onclick=e=>{const b=e.target.closest("button[data-m]");if(!b)return;gmode=b.dataset.m;document.querySelectorAll("#gm [data-m]").forEach(x=>x.classList.toggle("on",x===b));$("abb").style.display=gmode==="ab"?"":"none";renderLobby()};
 $("abb").onclick=()=>{abRender();show("abs")};
 $("aball").onclick=()=>{ABON=ABK.slice();abRender()};$("abnone").onclick=()=>{ABON=[];abRender()};
-$("abok").onclick=()=>{if(!ABON.length){$("abm").textContent="능력을 1개 이상 골라 주세요";return}show("tlobby");renderLobby()};
+$("abok").onclick=()=>{if(!ABON.length){$("abm").textContent="아이템을 1개 이상 골라 주세요";return}show("tlobby");renderLobby()};
 function tfxOn(){unsubT&&unsubT();unsubT=roomRef.collection("fx").where("rid","==",gen).onSnapshot(s=>{const L=s.docs.map(d=>d.data()).sort((a,b)=>(a.at||0)-(b.at||0)).slice(-5),box=$("tfx");box.textContent="";
 L.forEach(v=>{const a=AB[v.type];if(!a)return;const row=document.createElement("div");row.className="tfr";const ic=document.createElement("span");ic.className="abi";ic.innerHTML=ICO.ab(v.type);
 const t=document.createElement("span");t.textContent=(v.to&&v.to!==v.from?(v.fromName||"")+" → "+(v.toName||""):(v.fromName||""))+" · "+a.n;row.append(ic,t);box.append(row)})},()=>{})}
-// 학생: 능력 사용
+// 학생: 아이템 사용
 let ABM=false,ABL=[],eff={small:0,smallUntil:0,easy:0,dbl:0},picking=false,unsubF=null,fxSeen=new Set(),abT=null,abtT=null,inkT=null;
 function abReset(r){ABM=r.mode==="ab";ABL=(r.ab||[]).filter(k=>AB[k]);if(!ABL.length)ABM=false;eff={small:0,smallUntil:0,easy:0,dbl:0};abClose();inkOff();fxSeen=new Set();unsubF&&unsubF();unsubF=null;
 if(ABM)unsubF=roomRef.collection("fx").where("to","==",uid).onSnapshot(s=>s.docChanges().forEach(ch=>{if(ch.type!=="added"||fxSeen.has(ch.doc.id))return;fxSeen.add(ch.doc.id);const v=ch.doc.data();if(v.rid!==gen||v.from===uid)return;fxRecv(v)}),()=>{})}
 function abStat(){const a=[];if(eff.dbl)a.push("20점 찬스 "+eff.dbl+"장");if(eff.easy)a.push("읽기 쉽게 "+eff.easy+"장");if(eff.small)a.push("글자 작게 "+eff.small+"장");$("abst").textContent=a.join(" · ")}
 function abPick3(){const pick=[],left=ABL.slice();for(let i=0;i<3;i++){const src=left.length?left:ABL,tot=src.reduce((t,k)=>t+AB[k].w,0);let r=Math.random()*tot,k=src[src.length-1];for(const x of src){r-=AB[x].w;if(r<0){k=x;break}}pick.push(k);const j=left.indexOf(k);if(j>=0)left.splice(j,1)}return pick}
 function abFace(k){const a=AB[k];return'<span class="abi '+a.k+'">'+ICO.ab(k)+'</span><b>'+a.n+'</b><small>'+a.d+'</small>'}
-function abOpen(){if(!running||picking)return;picking=true;const o=$("abo");o.innerHTML='<div class="abp"><h2>능력 카드를 하나 고르세요!</h2><div class="abcs"></div><div class="abmsg"></div></div>';o.style.display="flex";snd("join");
+function abOpen(){if(!running||picking)return;picking=true;const o=$("abo");o.innerHTML='<div class="abp"><h2>아이템 카드를 하나 고르세요!</h2><div class="abcs"></div><div class="abmsg"></div></div>';o.style.display="flex";snd("join");
 const picks=abPick3(),box=o.querySelector(".abcs");let done=false;
 const choose=i=>{if(done)return;done=true;clearTimeout(abT);[...box.children].forEach((el,j)=>{el.classList.add("rv");if(j!==i)el.classList.add("dim");el.innerHTML=abFace(picks[j])});snd("ok",4);setTimeout(()=>abUse(picks[i]),1100)};
 picks.forEach((k,i)=>{const c=document.createElement("button");c.className="abc";c.innerHTML='<svg class="ico abq" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="17" fill="none" stroke="currentColor" stroke-width="3" opacity=".6"/><text x="24" y="31" text-anchor="middle" font-size="20" font-weight="700" font-family="sans-serif" fill="currentColor">?</text></svg>';c.onclick=()=>choose(i);box.append(c)});
