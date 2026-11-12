@@ -1750,7 +1750,9 @@ let ABM=false,ABL=[],eff={small:0,smallUntil:0,easy:0,dbl:0},picking=false,unsub
 function abReset(r){ABM=r.mode==="ab";ABL=(r.ab||[]).filter(k=>AB[k]);if(!ABL.length)ABM=false;eff={small:0,smallUntil:0,easy:0,dbl:0};abClose();inkOff();fxSeen=new Set();unsubF&&unsubF();unsubF=null;
 if(ABM)unsubF=roomRef.collection("fx").where("to","in",[uid,"*"]).onSnapshot(s=>s.docChanges().forEach(ch=>{if(ch.type!=="added"||fxSeen.has(ch.doc.id))return;fxSeen.add(ch.doc.id);const v=ch.doc.data();if(v.rid!==gen||v.from===uid)return;fxRecv(v)}),()=>{})}
 function abStat(){const a=[];if(eff.dbl)a.push("20점 찬스 "+eff.dbl+"장");if(eff.easy)a.push("읽기 쉽게 "+eff.easy+"장");if(eff.small)a.push("글자 작게 "+eff.small+"장");$("abst").textContent=a.join(" · ")}
-function abPick3(){const pick=[],left=ABL.slice();for(let i=0;i<3;i++){const src=left.length?left:ABL,tot=src.reduce((t,k)=>t+AB[k].w,0);let r=Math.random()*tot,k=src[src.length-1];for(const x of src){r-=AB[x].w;if(r<0){k=x;break}}pick.push(k);const j=left.indexOf(k);if(j>=0)left.splice(j,1)}return pick}
+function abPick3(){const pick=[],left=ABL.slice();for(let i=0;i<3;i++){const src=left.length?left:ABL,tot=src.reduce((t,k)=>t+AB[k].w,0);let r=Math.random()*tot,k=src[src.length-1];for(const x of src){r-=AB[x].w;if(r<0){k=x;break}}pick.push(k);const j=left.indexOf(k);if(j>=0)left.splice(j,1)}
+// 뽑은 순서대로 놓으면 드문 카드가 오른쪽에 몰리므로 자리를 섞어요
+for(let i=pick.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[pick[i],pick[j]]=[pick[j],pick[i]]}return pick}
 function abFace(k){const a=AB[k];return'<span class="abi '+a.k+'">'+ICO.ab(k)+'</span><b>'+a.n+'</b><small>'+a.d+'</small>'}
 function abOpen(){if(!running||picking)return;picking=true;const o=$("abo");o.innerHTML='<div class="abp"><h2>아이템 카드를 하나 고르세요!</h2><div class="abcs"></div><div class="abmsg"></div></div>';o.style.display="flex";snd("join");
 const picks=abPick3(),box=o.querySelector(".abcs");let done=false;
