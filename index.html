@@ -169,6 +169,8 @@ button.abc .abi .ico{width:46px;height:46px}button.abc b{font-size:15px;font-wei
 @media (min-width:901px) and (orientation:landscape){#rc{font-size:clamp(56px,min(11vw,15vh),210px)}#qr{width:min(26vh,19vw)}#tlobby:not(.hide){grid-template-rows:minmax(0,1fr) auto}.cp,.np{min-height:0;overflow:hidden}}
 html,body,button,.card,.wd,.ov{touch-action:manipulation}
 body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea{-webkit-user-select:text;user-select:text}
+.abbar{height:10px;border-radius:5px;background:#e8dcc4;overflow:hidden;margin:0 4px 12px}.abbar i{display:block;height:100%;background:#6b4fb8;transform-origin:left;animation:abbar 8s linear forwards}
+@keyframes abbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 </style></head><body>
 
 <!-- 1. 처음 화면: 선생님 / 학생 선택 -->
@@ -1713,7 +1715,7 @@ x2:{n:"점수 2배",d:"지금 점수가 2배가 돼요",k:"good",w:1},
 small:{n:"글자 작게",d:"친구 한 명을 골라 3장 동안 단어를 작게 만들어요",t:1,k:"atk",w:2},
 ink:{n:"먹물",d:"친구 한 명을 골라 5초 동안 화면에 먹물을 뿌려요",t:1,k:"atk",w:2},
 dbl:{n:"20점 찬스",d:"다음 3장은 맞히면 20점이에요",k:"good",w:3},
-easy:{n:"읽기 쉽게",d:"3장 동안 글자가 똑바로, 같은 크기로 나와요",k:"good",w:3},
+all100:{n:"모두 -100점",d:"나를 뺀 모든 친구의 점수가 100점씩 깎여요",k:"atk",w:2},
 x15:{n:"점수 1.5배",d:"지금 점수가 1.5배가 돼요",k:"good",w:3},
 x05:{n:"점수 반토막",d:"지금 점수가 0.5배가 돼요",k:"bad",w:3},
 m30:{n:"-30점",d:"점수가 30점 깎여요",k:"bad",w:3},
@@ -1727,11 +1729,11 @@ switch(k){case"x2":return T("×2",18);case"x15":return T("×1.5",13);case"x05":r
 case"swap":return W('<path d="M12 18h22l-5-5M36 30H14l5 5"/>');
 case"small":return W(tx(19,31,20,"A")+tx(31,31,10,"a")+'<path d="M37 12v9m-3.5-3.5L37 21l3.5-3.5"/>');
 case"dbl":return W('<path d="M24 8l4.4 8.9 9.8 1.4-7.1 6.9 1.7 9.8L24 30.4l-8.8 4.6 1.7-9.8-7.1-6.9 9.8-1.4z" fill="currentColor" opacity=".25" stroke="none"/>'+tx(24,28,11,"20"));
-case"easy":return W('<circle cx="16" cy="26" r="6"/><circle cx="32" cy="26" r="6"/><path d="M22 25.5c1.3-1.4 2.7-1.4 4 0M10 24l-2-6M38 24l2-6"/>');
+case"all100":return W('<circle cx="15" cy="15" r="3.4" fill="currentColor" stroke="none"/><circle cx="24" cy="13" r="3.4" fill="currentColor" stroke="none"/><circle cx="33" cy="15" r="3.4" fill="currentColor" stroke="none"/>'+tx(24,34,13,"−100"));
 case"ink":return W('<path d="M24 10c4.3 6.3 8.5 10.8 8.5 16a8.5 8.5 0 0 1-17 0c0-5.2 4.2-9.7 8.5-16z" fill="currentColor" stroke="none"/><circle cx="12" cy="34" r="2.3" fill="currentColor" stroke="none"/><circle cx="37" cy="35" r="1.7" fill="currentColor" stroke="none"/><circle cx="35" cy="14" r="1.3" fill="currentColor" stroke="none"/>');}
 return T("?",18)};
 // 선생님: 모드와 아이템 설정
-let gmode="n",unsubT=null,ABON=(()=>{try{const v=JSON.parse(localStorage.getItem("wm.ab"));if(Array.isArray(v))return v.filter(x=>AB[x])}catch(e){}return ABK.slice()})();
+let gmode="n",unsubT=null,ABON=(()=>{try{const v=JSON.parse(localStorage.getItem("wm.ab"));if(Array.isArray(v)){const L=v.filter(x=>AB[x]);if(localStorage.getItem("wm.abv")!=="2"){if(!L.includes("all100"))L.push("all100");localStorage.setItem("wm.abv","2")}return L}}catch(e){}return ABK.slice()})();
 function abSave(){try{localStorage.setItem("wm.ab",JSON.stringify(ABON))}catch(e){}$("abm").textContent="켜진 아이템 "+ABON.length+"개"}
 function abRender(){const box=$("abl");box.textContent="";ABK.forEach(k=>{const a=AB[k],li=document.createElement("label");li.className="abr";const c=document.createElement("input");c.type="checkbox";c.checked=ABON.includes(k);
 c.onchange=()=>{ABON=ABK.filter(x=>x===k?c.checked:ABON.includes(x));abSave()};const ic=document.createElement("span");ic.className="abi "+a.k;ic.innerHTML=ICO.ab(k);
@@ -1746,15 +1748,16 @@ const t=document.createElement("span");t.textContent=(v.to&&v.to!==v.from?(v.fro
 // 학생: 아이템 사용
 let ABM=false,ABL=[],eff={small:0,smallUntil:0,easy:0,dbl:0},picking=false,unsubF=null,fxSeen=new Set(),abT=null,abtT=null,inkT=null;
 function abReset(r){ABM=r.mode==="ab";ABL=(r.ab||[]).filter(k=>AB[k]);if(!ABL.length)ABM=false;eff={small:0,smallUntil:0,easy:0,dbl:0};abClose();inkOff();fxSeen=new Set();unsubF&&unsubF();unsubF=null;
-if(ABM)unsubF=roomRef.collection("fx").where("to","==",uid).onSnapshot(s=>s.docChanges().forEach(ch=>{if(ch.type!=="added"||fxSeen.has(ch.doc.id))return;fxSeen.add(ch.doc.id);const v=ch.doc.data();if(v.rid!==gen||v.from===uid)return;fxRecv(v)}),()=>{})}
+if(ABM)unsubF=roomRef.collection("fx").where("to","in",[uid,"*"]).onSnapshot(s=>s.docChanges().forEach(ch=>{if(ch.type!=="added"||fxSeen.has(ch.doc.id))return;fxSeen.add(ch.doc.id);const v=ch.doc.data();if(v.rid!==gen||v.from===uid)return;fxRecv(v)}),()=>{})}
 function abStat(){const a=[];if(eff.dbl)a.push("20점 찬스 "+eff.dbl+"장");if(eff.easy)a.push("읽기 쉽게 "+eff.easy+"장");if(eff.small)a.push("글자 작게 "+eff.small+"장");$("abst").textContent=a.join(" · ")}
 function abPick3(){const pick=[],left=ABL.slice();for(let i=0;i<3;i++){const src=left.length?left:ABL,tot=src.reduce((t,k)=>t+AB[k].w,0);let r=Math.random()*tot,k=src[src.length-1];for(const x of src){r-=AB[x].w;if(r<0){k=x;break}}pick.push(k);const j=left.indexOf(k);if(j>=0)left.splice(j,1)}return pick}
 function abFace(k){const a=AB[k];return'<span class="abi '+a.k+'">'+ICO.ab(k)+'</span><b>'+a.n+'</b><small>'+a.d+'</small>'}
 function abOpen(){if(!running||picking)return;picking=true;const o=$("abo");o.innerHTML='<div class="abp"><h2>아이템 카드를 하나 고르세요!</h2><div class="abcs"></div><div class="abmsg"></div></div>';o.style.display="flex";snd("join");
 const picks=abPick3(),box=o.querySelector(".abcs");let done=false;
-const choose=i=>{if(done)return;done=true;clearTimeout(abT);[...box.children].forEach((el,j)=>{el.classList.add("rv");if(j!==i)el.classList.add("dim");el.innerHTML=abFace(picks[j])});snd("ok",4);setTimeout(()=>abUse(picks[i]),1100)};
+const t0=Date.now();o.style.pointerEvents="none";setTimeout(()=>{if(o)o.style.pointerEvents=""},500);
+const choose=(i,auto)=>{if(done||(!auto&&Date.now()-t0<500))return;done=true;clearTimeout(abT);[...box.children].forEach((el,j)=>{el.classList.add("rv");if(j!==i)el.classList.add("dim");el.innerHTML=abFace(picks[j])});snd("ok",4);setTimeout(()=>abUse(picks[i]),1100)};
 picks.forEach((k,i)=>{const c=document.createElement("button");c.className="abc";c.innerHTML='<svg class="ico abq" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="17" fill="none" stroke="currentColor" stroke-width="3" opacity=".6"/><text x="24" y="31" text-anchor="middle" font-size="20" font-weight="700" font-family="sans-serif" fill="currentColor">?</text></svg>';c.onclick=()=>choose(i);box.append(c)});
-abT=setTimeout(()=>choose(Math.random()*3|0),8000)}
+abT=setTimeout(()=>choose(Math.random()*3|0,1),8000)}
 function abClose(){picking=false;clearTimeout(abT);const o=$("abo");if(o){o.style.display="none";o.innerHTML=""}}
 async function abUse(k){const a=AB[k],m=document.querySelector("#abo .abmsg");if(!m||!running){abClose();return}
 if(!a.t){abSelf(k);abClose();return}
@@ -1762,19 +1765,20 @@ m.textContent="친구 목록을 불러오는 중...";let list=[];
 try{const ps=await roomRef.collection("players").where("rid","==",gen).get();list=ps.docs.filter(d=>d.id!==uid).map(d=>({id:d.id,name:String(d.data().name||"친구"),s:d.data().s|0}))}catch(e){}
 if(!running||!picking){abClose();return}
 if(!list.length){m.textContent="고를 친구가 없어요";setTimeout(abClose,1200);return}
-const box=document.querySelector("#abo .abcs");box.className="abtg";box.textContent="";document.querySelector("#abo h2").textContent=a.n+": 누구에게 쓸까요?";m.textContent="8초 안에 안 고르면 아무나 골라요";
+const box=document.querySelector("#abo .abcs"),m2=document.querySelector("#abo .abmsg");if(!box||!m2||m2!==m){return}box.className="abtg";box.textContent="";document.querySelector("#abo h2").textContent=a.n+": 누구에게 쓸까요?";const bar=document.createElement("div");bar.className="abbar";bar.innerHTML="<i></i>";box.before(bar);m.textContent="시간이 끝나면 아무나 골라요";
 let done=false;const go=p=>{if(done)return;done=true;clearTimeout(abT);abTarget(k,p);abClose()};
 list.sort((x,y)=>y.s-x.s).forEach(p=>{const b=document.createElement("button");b.className="n";b.textContent=p.name+" · "+p.s+"점";b.onclick=()=>go(p);box.append(b)});
 abT=setTimeout(()=>go(list[Math.random()*list.length|0]),8000)}
-function abSelf(k){const b=score;if(k==="x2")score=b*2;else if(k==="x15")score=Math.round(b*1.5);else if(k==="x05")score=Math.round(b*.5);else if(k==="m30")score=Math.max(0,b-30);else if(k==="m20")score=Math.max(0,b-20);else if(k==="m10")score=Math.max(0,b-10);else if(k==="dbl")eff.dbl=3;else if(k==="easy")eff.easy=3;
-abToast(AB[k].n+(score!==b?" → "+score+"점":"")+"!",AB[k].k);snd(AB[k].k==="bad"?"bad":"go");fxSend(uid,me,k,null);drawS();report(true)}
+function abSelf(k){const b=score;if(k==="x2")score=b*2;else if(k==="x15")score=Math.round(b*1.5);else if(k==="x05")score=Math.round(b*.5);else if(k==="m30")score=Math.max(0,b-30);else if(k==="m20")score=Math.max(0,b-20);else if(k==="m10")score=Math.max(0,b-10);else if(k==="dbl")eff.dbl=3;
+abToast(AB[k].n+(score!==b?" → "+score+"점":"")+"!",AB[k].k);snd(AB[k].k==="bad"?"bad":"go");if(k==="all100")fxSend("*","모두",k,null);else fxSend(uid,me,k,null);drawS();report(true)}
 function abTarget(k,p){let val=null;if(k==="swap"){val=score;score=p.s}
 abToast(AB[k].n+" → "+p.name+(k==="swap"?" ("+score+"점)":""),"atk");snd("go");fxSend(p.id,p.name,k,val);drawS();report(true)}
 function fxSend(to,toName,k,val){roomRef.collection("fx").add({rid:gen,from:uid,fromName:me,to,toName,type:k,val,at:Date.now(),ts:TS()}).catch(()=>{})}
 function fxRecv(v){if(!running)return;const who=String(v.fromName||"친구");
 if(v.type==="swap"&&typeof v.val==="number"){score=Math.max(0,v.val|0);abToast(who+" 님이 점수를 바꿨어요! → "+score+"점","atk");drawS();report(true)}
 else if(v.type==="small"){eff.small=3;eff.smallUntil=Date.now()+20000;abToast(who+" 님 때문에 글자가 작아졌어요!","atk");drawS()}
-else if(v.type==="ink"){inkOn(5000);abToast(who+" 님이 먹물을 뿌렸어요!","atk")}else return;snd("bad")}
+else if(v.type==="ink"){inkOn(5000);abToast(who+" 님이 먹물을 뿌렸어요!","atk")}
+else if(v.type==="all100"){score=Math.max(0,score-100);abToast(who+" 님 때문에 100점이 깎였어요! → "+score+"점","atk");drawS();report(true)}else return;snd("bad")}
 function abToast(t,k){const e=$("abt");e.textContent=t;e.className="on "+(k||"");clearTimeout(abtT);abtT=setTimeout(()=>{e.className=""},2600)}
 function inkOn(ms){const k=$("ink");let s='<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><filter id="inkb"><feGaussianBlur stdDeviation=".6"/></filter></defs><g filter="url(#inkb)" fill="#111">';
 for(let i=0;i<8;i++){const x=15+Math.random()*70,y=20+Math.random()*60,r=11+Math.random()*15;s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+r.toFixed(1)+'"/>';
