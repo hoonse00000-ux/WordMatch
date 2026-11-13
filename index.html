@@ -171,6 +171,15 @@ html,body,button,.card,.wd,.ov{touch-action:manipulation}
 body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea{-webkit-user-select:text;user-select:text}
 .abbar{height:10px;border-radius:5px;background:#e8dcc4;overflow:hidden;margin:0 4px 12px}.abbar i{display:block;height:100%;background:#6b4fb8;transform-origin:left;animation:abbar 8s linear forwards}
 @keyframes abbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+
+.abr{display:flex}.abr.off{opacity:.5}.abr .abtx{flex:1}
+select.abf{flex:none;font:inherit;font-size:15px;padding:6px 8px;border-radius:10px;border:2px solid var(--line);background:#fffdf7;color:var(--fg)}
+#sgame.flip #tgt,#sgame.flip #own{transform:rotate(180deg);transition:transform .35s}
+#qr{cursor:zoom-in}
+#qrfull{position:fixed;inset:0;z-index:200;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;cursor:zoom-out}
+#qrfull .qfb{width:min(86vw,74vh);aspect-ratio:1}#qrfull .qfb svg{width:100%;height:100%;display:block}
+#qrfull .qfc{font-size:clamp(22px,4vh,48px);color:#333}#qrfull .qfc b{font-size:1.4em;letter-spacing:.06em}
+#qrfull .qfh{font-size:clamp(13px,1.8vh,20px);color:#888}
 </style></head><body>
 
 <!-- 1. 처음 화면: 선생님 / 학생 선택 -->
@@ -210,7 +219,7 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,
 
 <button id="mt" aria-label="소리"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3l4.2-3.6a.6.6 0 0 1 1 .45v11.3a.6.6 0 0 1-1 .45L7 14.5H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z" fill="currentColor" fill-opacity=".14"/><g class="on"><path d="M15.6 9.2a4 4 0 0 1 0 5.6"/><path d="M18.2 6.6a7.6 7.6 0 0 1 0 10.8"/></g><path class="off" d="M3.5 3.5l17 17" stroke="#c4553b" stroke-width="2"/></svg></button>
 <div class="ov hide" id="tlobby">
-<section class="cp board"><div class="cl">방 코드</div><div id="rc" class="big"></div><div id="qr"></div><p class="ci">휴대폰으로 QR코드를 찍거나<br>접속해서 방 코드를 입력하세요</p></section>
+<section class="cp board"><div class="cl">방 코드</div><div id="rc" class="big"></div><div id="qr" title="누르면 크게 보여요"></div><p class="ci">휴대폰으로 QR코드를 찍거나<br>접속해서 방 코드를 입력하세요</p></section>
 <section class="np"><div id="tn">입장한 학생 0명</div><div id="slist"></div></section>
 <div class="bar3"><button id="twb" class="n">단어 선택</button><span id="twsum"></span>
 <div class="row" id="pls"><button class="n on" data-p="1">내 카드: 한글</button><button class="n" data-p="0">내 카드: 영어</button></div>
@@ -219,8 +228,8 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,
 <button id="st" disabled>게임 시작</button></div></div>
 
 <div class="ov hide" id="abs"><h1>아이템 설정</h1>
-<p>2장을 연속으로 맞힐 때마다 아이템 카드 3장 중 1장을 골라요.<br>게임에 나올 아이템을 골라 주세요.</p>
-<div class="row"><button id="aball" class="n">전체 선택</button><button id="abnone" class="n">전체 해제</button></div>
+<p>2장을 연속으로 맞힐 때마다 아이템 카드 3장 중 1장을 골라요.<br>아이템마다 나오는 빈도를 정할 수 있어요. (끔 ~ 아주 자주)</p>
+<div class="row"><button id="aball" class="n">기본값으로</button><button id="abnone" class="n">전체 끄기</button></div>
 <div id="abl"></div><div class="msg" id="abm" style="color:var(--fg)"></div><button id="abok">완료</button></div>
 
 <div class="ov hide" id="tw"><h1>단어 선택</h1>
@@ -1592,11 +1601,13 @@ if(!pick)ok=false;else{items[wi]=pick;placed.push(pick)}}
 if(ok)return{fs,items}}}}
 fs*=.93}
 const items=t.map((x,i)=>{const m=measure(x,fs,27),a=i?ang0[i-1]:0;return{x:i?50+30*Math.cos(a):50,y:i?50+30*Math.sin(a):50,mw:27,w:m.w,h:m.h,fs,th:th[i]}});return{fs,items}}
+// 스펠링 바꾸기: 첫 글자와 끝 글자를 바꿔요 (비닐봉지 → 지닐봉비, plastic bag → glastic bap)
+function scrW(x){const a=[...x],idx=a.map((c,i)=>c.trim()?i:-1).filter(i=>i>=0);if(idx.length<2)return x;const i=idx[0],j=idx[idx.length-1];if(a[i]===a[j]){const k=[...idx].reverse().find(q=>a[q]!==a[i]);if(k==null)return x;[a[i],a[k]]=[a[k],a[i]];return a.join("")}[a[i],a[j]]=[a[j],a[i]];return a.join("")}
 function cardEl(c,lang,cls,onTap,fk,opt){fk=fk||.066;const d=document.createElement("div");d.className="card "+(cls||"");
 const r=mb(c.id*977+13),ws=shuffle(c.s,r),off=(r()-.5)*40,n=ws.length,ang=[];
 for(let i=0;i<n-1;i++)ang.push((-90+off+i*360/(n-1))*Math.PI/180);
 const base=r()*360,perm=shuffle(ws.map((_,i)=>i),r),th=ws.map((_,i)=>{let a=(base+perm[i]*360/n+(r()-.5)*24)%360;if(a>180)a-=360;return a*ROTMAX/180});
-const uni=!!(opt&&opt.uni),th0=(!uni&&!(opt&&opt.flat)&&(cls||'').indexOf('tg')>=0)?th:th.map(()=>0),t=ws.map(w=>CW[w][lang]),L=layoutCard(t,ang,fk,th0,uni);
+const uni=!!(opt&&opt.uni),th0=(!uni&&!(opt&&opt.flat)&&(cls||'').indexOf('tg')>=0)?th:th.map(()=>0),t=ws.map(w=>opt&&opt.scr?scrW(CW[w][lang]):CW[w][lang]),L=layoutCard(t,ang,fk,th0,uni);
 ws.forEach((w,i)=>{const e=document.createElement("div"),b=L.items[i];e.className="wd";e.style.left=b.x+"%";e.style.top=b.y+"%";e.style.fontSize="calc(var(--s)*"+b.fs+")";e.style.maxWidth=b.mw+"%";
 e.style.transform="translate(-50%,-50%) rotate("+b.th.toFixed(1)+"deg)";e.dataset.th=b.th.toFixed(1);e.textContent=t[i];
 if(onTap)e.addEventListener("pointerdown",ev=>{ev.preventDefault();onTap(w)});d.appendChild(e)});return d}
@@ -1697,7 +1708,7 @@ r.querySelector("small").textContent="정답 "+s.k+" · 오답 "+s.w;r.querySele
 async function startClass(){const on=students.filter(s=>online(s));if(!on.length||phase!=="lobby")return;phase="count";$("st").disabled=true;
 roster=new Set(on.map(s=>s.id));const used=twSel().map(x=>[x.e,x.k]);if(used.length<7){phase="lobby";$("st").disabled=false;return}CW=used;
 const q=qFor(used.length),sel=pickSel(),words=sel.map(i=>({e:CW[i][0],k:CW[i][1]}));
-try{await roomRef.update({phase:"count",words,q,dur,pl,mode:gmode,ab:ABON})}catch(e){phase="lobby";$("st").disabled=false;$("tn").textContent=ferr(e);return}
+try{const abw={};ABON.forEach(k=>abw[k]=LV[ABLV[k]]);await roomRef.update({phase:"count",words,q,dur,pl,mode:gmode,ab:ABON,abw})}catch(e){phase="lobby";$("st").disabled=false;$("tn").textContent=ferr(e);return}
 show("tgame");$("tgame").classList.remove("done");$("ttl").textContent="남은 시간";$("ttime").textContent=fmt(dur);$("fin").disabled=false;$("fin").textContent="끝내기";$("fin").onclick=manualEnd;renderRank();$("tfx").textContent="";if(gmode==="ab")tfxOn();
 for(const n of[3,2,1]){$("count").textContent=n;snd("tick");await wait(800)}$("count").textContent="";snd("go");if(phase!=="count")return;phase="play";
 const endAt=Date.now()+dur*1000;clearInterval(tm);tm=setInterval(()=>{if(phase!=="play")return;const left=Math.ceil((endAt-Date.now())/1000);
@@ -1710,17 +1721,21 @@ roomRef.update({phase:"end",rank:rk}).catch(()=>{});snd("end");$("ttime").textCo
 // ===== 아이템 모드 =====
 // w: 나올 확률(가중치). 점수 바꾸기·2배가 가장 드물고, 그다음 방해(글자 작게·먹물), 나머지는 비슷하게
 const AB={
-swap:{n:"점수 바꾸기",d:"친구 한 명을 골라 점수를 서로 바꿔요",t:1,k:"atk",w:1},
-x2:{n:"점수 2배",d:"지금 점수가 2배가 돼요",k:"good",w:1},
-small:{n:"글자 작게",d:"친구 한 명을 골라 3장 동안 단어를 작게 만들어요",t:1,k:"atk",w:2},
-ink:{n:"먹물",d:"친구 한 명을 골라 5초 동안 화면에 먹물을 뿌려요",t:1,k:"atk",w:2},
-dbl:{n:"20점 찬스",d:"다음 3장은 맞히면 20점이에요",k:"good",w:3},
-all100:{n:"모두 -100점",d:"나를 뺀 모든 친구의 점수가 100점씩 깎여요",k:"atk",w:2},
-x15:{n:"점수 1.5배",d:"지금 점수가 1.5배가 돼요",k:"good",w:3},
-x05:{n:"점수 반토막",d:"지금 점수가 0.5배가 돼요",k:"bad",w:3},
-m30:{n:"-30점",d:"점수가 30점 깎여요",k:"bad",w:3},
-m20:{n:"-20점",d:"점수가 20점 깎여요",k:"bad",w:3},
-m10:{n:"-10점",d:"점수가 10점 깎여요",k:"bad",w:3}};
+swap:{n:"점수 바꾸기",d:"친구 한 명을 골라 점수를 서로 바꿔요",t:1,k:"atk",lv:2},
+x2:{n:"점수 2배",d:"지금 점수가 2배가 돼요",k:"good",lv:2},
+small:{n:"글자 작게",d:"친구 한 명을 골라 3장 동안 단어를 작게 만들어요",t:1,k:"atk",lv:3},
+ink:{n:"먹물",d:"친구 한 명을 골라 5초 동안 화면에 먹물을 뿌려요",t:1,k:"atk",lv:3},
+rot:{n:"카드 180도 돌리기",d:"친구 한 명을 골라 3장 동안 카드를 거꾸로 돌려요",t:1,k:"atk",lv:3},
+scr:{n:"스펠링 바꾸기",d:"친구 한 명을 골라 3장 동안 단어의 첫 글자와 끝 글자를 바꿔요 (비닐봉지 → 지닐봉비)",t:1,k:"atk",lv:3},
+all100:{n:"모두 -100점",d:"나를 뺀 모든 친구의 점수가 100점씩 깎여요",k:"atk",lv:1},
+dbl:{n:"20점 찬스",d:"다음 3장은 맞히면 20점이에요",k:"good",lv:4},
+x15:{n:"점수 1.5배",d:"지금 점수가 1.5배가 돼요",k:"good",lv:4},
+x05:{n:"점수 반토막",d:"지금 점수가 0.5배가 돼요",k:"bad",lv:4},
+m30:{n:"-30점",d:"점수가 30점 깎여요",k:"bad",lv:4},
+m20:{n:"-20점",d:"점수가 20점 깎여요",k:"bad",lv:4},
+m10:{n:"-10점",d:"점수가 10점 깎여요",k:"bad",lv:4}};
+// 빈도 단계: 0 끔 ~ 5 아주 자주 (숫자가 클수록 잘 나와요)
+const LV=[0,.35,1,2,3,5],LVN=["끔","아주 드물게","드물게","가끔","자주","아주 자주"];
 const ABK=Object.keys(AB);
 ICO.ab=(k)=>{const T=(t,fs)=>'<svg class="ico" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="currentColor" opacity=".13"/><text x="24" y="'+(24+fs*.36)+'" text-anchor="middle" font-size="'+fs+'" font-weight="700" font-family="sans-serif" fill="currentColor">'+t+'</text></svg>';
 const W=b=>'<svg class="ico" viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="21" fill="currentColor" opacity=".13" stroke="none"/>'+b+'</svg>';
@@ -1729,28 +1744,36 @@ switch(k){case"x2":return T("×2",18);case"x15":return T("×1.5",13);case"x05":r
 case"swap":return W('<path d="M12 18h22l-5-5M36 30H14l5 5"/>');
 case"small":return W(tx(19,31,20,"A")+tx(31,31,10,"a")+'<path d="M37 12v9m-3.5-3.5L37 21l3.5-3.5"/>');
 case"dbl":return W('<path d="M24 8l4.4 8.9 9.8 1.4-7.1 6.9 1.7 9.8L24 30.4l-8.8 4.6 1.7-9.8-7.1-6.9 9.8-1.4z" fill="currentColor" opacity=".25" stroke="none"/>'+tx(24,28,11,"20"));
+case"rot":return W('<path d="M34 17a12 12 0 1 0 2.5 10"/><path d="M35 9v8h-8"/>'+tx(24,29,10,"180"));
+case"scr":return W(tx(14,30,13,"가")+tx(34,30,13,"지")+'<path d="M15 15c4-5 14-5 18 0m0 0l-1-4m1 4l-4 0M33 35c-4 5-14 5-18 0m0 0l1 4m-1-4l4 0"/>');
 case"all100":return W('<circle cx="15" cy="15" r="3.4" fill="currentColor" stroke="none"/><circle cx="24" cy="13" r="3.4" fill="currentColor" stroke="none"/><circle cx="33" cy="15" r="3.4" fill="currentColor" stroke="none"/>'+tx(24,34,13,"−100"));
 case"ink":return W('<path d="M24 10c4.3 6.3 8.5 10.8 8.5 16a8.5 8.5 0 0 1-17 0c0-5.2 4.2-9.7 8.5-16z" fill="currentColor" stroke="none"/><circle cx="12" cy="34" r="2.3" fill="currentColor" stroke="none"/><circle cx="37" cy="35" r="1.7" fill="currentColor" stroke="none"/><circle cx="35" cy="14" r="1.3" fill="currentColor" stroke="none"/>');}
 return T("?",18)};
 // 선생님: 모드와 아이템 설정
-let gmode="n",unsubT=null,ABON=(()=>{try{const v=JSON.parse(localStorage.getItem("wm.ab"));if(Array.isArray(v)){const L=v.filter(x=>AB[x]);if(localStorage.getItem("wm.abv")!=="2"){if(!L.includes("all100"))L.push("all100");localStorage.setItem("wm.abv","2")}return L}}catch(e){}return ABK.slice()})();
-function abSave(){try{localStorage.setItem("wm.ab",JSON.stringify(ABON))}catch(e){}$("abm").textContent="켜진 아이템 "+ABON.length+"개"}
-function abRender(){const box=$("abl");box.textContent="";ABK.forEach(k=>{const a=AB[k],li=document.createElement("label");li.className="abr";const c=document.createElement("input");c.type="checkbox";c.checked=ABON.includes(k);
-c.onchange=()=>{ABON=ABK.filter(x=>x===k?c.checked:ABON.includes(x));abSave()};const ic=document.createElement("span");ic.className="abi "+a.k;ic.innerHTML=ICO.ab(k);
-const t=document.createElement("span");t.className="abtx";const b=document.createElement("b"),sm=document.createElement("small");b.textContent=a.n;sm.textContent=a.d+" · "+["","드물게","가끔","자주"][a.w];t.append(b,sm);li.append(c,ic,t);box.append(li)});abSave()}
+let gmode="n",unsubT=null,ABLV=(()=>{const d={};ABK.forEach(k=>d[k]=AB[k].lv);try{const v=JSON.parse(localStorage.getItem("wm.abl")||"null");
+if(v&&typeof v==="object"){ABK.forEach(k=>{if(typeof v[k]==="number"&&v[k]>=0&&v[k]<=5)d[k]=v[k]});return d}
+const o=JSON.parse(localStorage.getItem("wm.ab")||"null");if(Array.isArray(o))["swap","x2","small","ink","dbl","x15","x05","m30","m20","m10"].forEach(k=>{if(!o.includes(k))d[k]=0})}catch(e){}return d})();
+const abOn=()=>ABK.filter(k=>ABLV[k]>0);let ABON=abOn();
+function abSave(){ABON=abOn();try{localStorage.setItem("wm.abl",JSON.stringify(ABLV))}catch(e){}$("abm").textContent="켜진 아이템 "+ABON.length+"개"}
+function abRender(){const box=$("abl");box.textContent="";ABK.forEach(k=>{const a=AB[k],li=document.createElement("div");li.className="abr"+(ABLV[k]?"":" off");
+const ic=document.createElement("span");ic.className="abi "+a.k;ic.innerHTML=ICO.ab(k);
+const t=document.createElement("span");t.className="abtx";const b=document.createElement("b"),sm=document.createElement("small");b.textContent=a.n;sm.textContent=a.d;t.append(b,sm);
+const sel=document.createElement("select");sel.className="abf";sel.setAttribute("aria-label",a.n+" 나오는 빈도");LVN.forEach((n,i)=>{const o=document.createElement("option");o.value=i;o.textContent=n;if(i===ABLV[k])o.selected=true;sel.append(o)});
+sel.onchange=()=>{ABLV[k]=+sel.value;li.classList.toggle("off",!ABLV[k]);abSave()};li.append(ic,t,sel);box.append(li)});abSave()}
 $("gm").onclick=e=>{const b=e.target.closest("button[data-m]");if(!b)return;gmode=b.dataset.m;document.querySelectorAll("#gm [data-m]").forEach(x=>x.classList.toggle("on",x===b));$("abb").style.display=gmode==="ab"?"":"none";renderLobby()};
 $("abb").onclick=()=>{abRender();show("abs")};
-$("aball").onclick=()=>{ABON=ABK.slice();abRender()};$("abnone").onclick=()=>{ABON=[];abRender()};
+$("aball").onclick=()=>{ABK.forEach(k=>ABLV[k]=AB[k].lv);abRender()};$("abnone").onclick=()=>{ABK.forEach(k=>ABLV[k]=0);abRender()};
 $("abok").onclick=()=>{if(!ABON.length){$("abm").textContent="아이템을 1개 이상 골라 주세요";return}show("tlobby");renderLobby()};
 function tfxOn(){unsubT&&unsubT();unsubT=roomRef.collection("fx").where("rid","==",gen).onSnapshot(s=>{const L=s.docs.map(d=>d.data()).sort((a,b)=>(a.at||0)-(b.at||0)).slice(-5),box=$("tfx");box.textContent="";
 L.forEach(v=>{const a=AB[v.type];if(!a)return;const row=document.createElement("div");row.className="tfr";const ic=document.createElement("span");ic.className="abi";ic.innerHTML=ICO.ab(v.type);
 const t=document.createElement("span");t.textContent=(v.to&&v.to!==v.from?(v.fromName||"")+" → "+(v.toName||""):(v.fromName||""))+" · "+a.n;row.append(ic,t);box.append(row)})},()=>{})}
 // 학생: 아이템 사용
-let ABM=false,ABL=[],eff={small:0,smallUntil:0,easy:0,dbl:0},picking=false,unsubF=null,fxSeen=new Set(),abT=null,abtT=null,inkT=null;
-function abReset(r){ABM=r.mode==="ab";ABL=(r.ab||[]).filter(k=>AB[k]);if(!ABL.length)ABM=false;eff={small:0,smallUntil:0,easy:0,dbl:0};abClose();inkOff();fxSeen=new Set();unsubF&&unsubF();unsubF=null;
+let ABM=false,ABL=[],ABW=null,eff={small:0,smallUntil:0,easy:0,dbl:0,rot:0,rotUntil:0,scr:0,scrUntil:0},picking=false,unsubF=null,fxSeen=new Set(),abT=null,abtT=null,inkT=null;
+function abReset(r){ABM=r.mode==="ab";ABW=r.abw&&typeof r.abw==="object"?r.abw:null;ABL=(r.ab||[]).filter(k=>AB[k]&&abW(k)>0);if(!ABL.length)ABM=false;eff={small:0,smallUntil:0,easy:0,dbl:0,rot:0,rotUntil:0,scr:0,scrUntil:0};$("sgame").classList.remove("flip");abClose();inkOff();fxSeen=new Set();unsubF&&unsubF();unsubF=null;
 if(ABM)unsubF=roomRef.collection("fx").where("to","in",[uid,"*"]).onSnapshot(s=>s.docChanges().forEach(ch=>{if(ch.type!=="added"||fxSeen.has(ch.doc.id))return;fxSeen.add(ch.doc.id);const v=ch.doc.data();if(v.rid!==gen||v.from===uid)return;fxRecv(v)}),()=>{})}
-function abStat(){const a=[];if(eff.dbl)a.push("20점 찬스 "+eff.dbl+"장");if(eff.easy)a.push("읽기 쉽게 "+eff.easy+"장");if(eff.small)a.push("글자 작게 "+eff.small+"장");$("abst").textContent=a.join(" · ")}
-function abPick3(){const pick=[],left=ABL.slice();for(let i=0;i<3;i++){const src=left.length?left:ABL,tot=src.reduce((t,k)=>t+AB[k].w,0);let r=Math.random()*tot,k=src[src.length-1];for(const x of src){r-=AB[x].w;if(r<0){k=x;break}}pick.push(k);const j=left.indexOf(k);if(j>=0)left.splice(j,1)}
+function abStat(){const a=[];if(eff.dbl)a.push("20점 찬스 "+eff.dbl+"장");if(eff.easy)a.push("읽기 쉽게 "+eff.easy+"장");if(eff.small)a.push("글자 작게 "+eff.small+"장");if(eff.rot)a.push("카드 거꾸로 "+eff.rot+"장");if(eff.scr)a.push("스펠링 바뀜 "+eff.scr+"장");$("abst").textContent=a.join(" · ")}
+function abW(k){const v=ABW&&ABW[k];return typeof v==="number"?v:LV[AB[k].lv]}
+function abPick3(){const pick=[],left=ABL.slice();for(let i=0;i<3;i++){const src=left.length?left:ABL,tot=src.reduce((t,k)=>t+abW(k),0);let r=Math.random()*tot,k=src[src.length-1];for(const x of src){r-=abW(x);if(r<0){k=x;break}}pick.push(k);const j=left.indexOf(k);if(j>=0)left.splice(j,1)}
 // 뽑은 순서대로 놓으면 드문 카드가 오른쪽에 몰리므로 자리를 섞어요
 for(let i=pick.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[pick[i],pick[j]]=[pick[j],pick[i]]}return pick}
 function abFace(k){const a=AB[k];return'<span class="abi '+a.k+'">'+ICO.ab(k)+'</span><b>'+a.n+'</b><small>'+a.d+'</small>'}
@@ -1780,19 +1803,26 @@ function fxRecv(v){if(!running)return;const who=String(v.fromName||"친구");
 if(v.type==="swap"&&typeof v.val==="number"){score=Math.max(0,v.val|0);abToast(who+" 님이 점수를 바꿨어요! → "+score+"점","atk");drawS();report(true)}
 else if(v.type==="small"){eff.small=3;eff.smallUntil=Date.now()+20000;abToast(who+" 님 때문에 글자가 작아졌어요!","atk");drawS()}
 else if(v.type==="ink"){inkOn(5000);abToast(who+" 님이 먹물을 뿌렸어요!","atk")}
+else if(v.type==="rot"){eff.rot=3;eff.rotUntil=Date.now()+20000;abToast(who+" 님이 카드를 거꾸로 돌렸어요!","atk");drawS()}
+else if(v.type==="scr"){eff.scr=3;eff.scrUntil=Date.now()+20000;abToast(who+" 님이 스펠링을 바꿨어요!","atk");drawS()}
 else if(v.type==="all100"){score=Math.max(0,score-100);abToast(who+" 님 때문에 100점이 깎였어요! → "+score+"점","atk");drawS();report(true)}else return;snd("bad")}
 function abToast(t,k){const e=$("abt");e.textContent=t;e.className="on "+(k||"");clearTimeout(abtT);abtT=setTimeout(()=>{e.className=""},2600)}
-function inkOn(ms){const k=$("ink");let s='<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><filter id="inkb"><feGaussianBlur stdDeviation=".6"/></filter></defs><g filter="url(#inkb)" fill="#111">';
-for(let i=0;i<8;i++){const x=15+Math.random()*70,y=20+Math.random()*60,r=11+Math.random()*15;s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+r.toFixed(1)+'"/>';
-for(let j=0;j<5;j++){const a=Math.random()*6.28,d=r+2+Math.random()*9;s+='<circle cx="'+(x+Math.cos(a)*d).toFixed(1)+'" cy="'+(y+Math.sin(a)*d).toFixed(1)+'" r="'+(1+Math.random()*3).toFixed(1)+'"/>'}}
+function inkOn(ms){const k=$("ink"),pw=k.parentNode.clientWidth||390,ph=k.parentNode.clientHeight||844,mn=Math.min(pw,ph),VW=Math.round(100*pw/mn),H=Math.round(100*ph/mn);let s='<svg viewBox="0 0 '+VW+' '+H+'" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="inkb"><feGaussianBlur stdDeviation=".6"/></filter></defs><g filter="url(#inkb)" fill="#111">';
+for(let i=0;i<5;i++){const x=VW/2+(Math.random()-.5)*70,y=H*(.2+Math.random()*.6),r=9+Math.random()*8;s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+r.toFixed(1)+'"/>';
+for(let j=0;j<4;j++){const a=Math.random()*6.28,d=r+2+Math.random()*6;s+='<circle cx="'+(x+Math.cos(a)*d).toFixed(1)+'" cy="'+(y+Math.sin(a)*d).toFixed(1)+'" r="'+(1+Math.random()*3).toFixed(1)+'"/>'}}
 k.innerHTML=s+'</g></svg>';k.className="on";clearTimeout(inkT);inkT=setTimeout(()=>{k.classList.add("out");inkT=setTimeout(inkOff,600)},ms)}
 function inkOff(){clearTimeout(inkT);const k=$("ink");if(k){k.className="";k.innerHTML=""}}
 // ----- QR코드 -----
 function qrSvg(text){const q=new QRLib(-1,0);q.addData(text);q.make();const n=q.getModuleCount(),m=4,sz=n+m*2;let d="";
 for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))d+="M"+(c+m)+" "+(r+m)+"h1v1h-1z";
 return'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+sz+" "+sz+'" shape-rendering="crispEdges"><rect width="'+sz+'" height="'+sz+'" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>'}
+function qrBig(){const q=$("qr");if(!q.querySelector("svg"))return;const o=document.createElement("div");o.id="qrfull";
+o.innerHTML='<div class="qfb">'+q.innerHTML+'</div><div class="qfc">방 코드 <b></b></div><div class="qfh">화면을 누르면 닫혀요</div>';o.querySelector("b").textContent=$("rc").textContent;
+const close=()=>{o.remove();try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}document.removeEventListener("keydown",esc)},esc=e=>{if(e.key==="Escape")close()};
+o.onclick=close;document.addEventListener("keydown",esc);document.body.append(o);try{const f=document.documentElement;(f.requestFullscreen||f.webkitRequestFullscreen||(()=>{})).call(f)}catch(e){}}
 function drawQR(){const b=$("qr");if(location.protocol==="file:"){b.className="warn";b.textContent="QR코드는 이 파일을 인터넷 주소에 올려서 열었을 때 만들어져요";return}
 b.className="";try{b.innerHTML=qrSvg(location.href.split(/[?#]/)[0]+"?room="+code)}catch(e){b.className="warn";b.textContent="QR코드를 만들지 못했어요. 방 코드로 입장해 주세요"}}
+$("qr").onclick=qrBig;
 // ----- 선생님: 단어 선택 -----
 let TW=null;
 function twLoad(){try{const s=JSON.parse(localStorage.getItem("wm.tw"));if(Array.isArray(s)&&s.length)return s.map(x=>({e:String(x.e),k:String(x.k),on:x.on!==false}))}catch(e){}return DEF.map(x=>({e:x[0],k:x[1],on:true}))}
@@ -1855,7 +1885,7 @@ else if(r.phase==="stop"&&(sp==="play"||sp==="count"))sStop();
 else if(r.phase==="end"&&sp!=="end")sEnd(r.rank||[])}
 function nextId(prev){let id;do{if(!pool.length)pool=shuffle(cards.map(c=>c.id));id=pool.pop()}while(id===prev);return id}
 function drawS(a,b){const t=$("tgt"),o=$("own");t.textContent="";o.textContent="";
-if(eff.small&&Date.now()>eff.smallUntil)eff.small=0;const fk=eff.small?.038:.066,op={uni:eff.easy>0,flat:true},tc=cardEl(cards[tgC],1-pl,"tg",null,fk,op),oc=cardEl(cards[myC],pl,"mine",sTap,fk,op);abStat();oc.style.setProperty("--c","#f2c25b");if(a)tc.classList.add("flip");if(b)oc.classList.add("pop");t.append(tc);o.append(oc);
+const nw=Date.now();if(eff.small&&nw>eff.smallUntil)eff.small=0;if(eff.rot&&nw>eff.rotUntil)eff.rot=0;if(eff.scr&&nw>eff.scrUntil)eff.scr=0;$("sgame").classList.toggle("flip",eff.rot>0);const fk=eff.small?.038:.066,op={uni:eff.easy>0,flat:true,scr:eff.scr>0},tc=cardEl(cards[tgC],1-pl,"tg",null,fk,op),oc=cardEl(cards[myC],pl,"mine",sTap,fk,op);abStat();oc.style.setProperty("--c","#f2c25b");if(a)tc.classList.add("flip");if(b)oc.classList.add("pop");t.append(tc);o.append(oc);
 $("bs").textContent=score+"점";if(streak>1){$("bk").innerHTML=ICO.fire();$("bk").append(streak+"연속")}else $("bk").textContent=""}
 function report(force){if(!myRef)return;const send=()=>{rt=null;myRef.update({s:score,k:okN,w:badN,fin:finished,ts:TS()}).catch(()=>{})};
 if(force){clearTimeout(rt);send();return}if(rt)return;rt=setTimeout(send,2500)}
@@ -1866,7 +1896,7 @@ const endAt=Date.now()+r.dur*1000;clearInterval(sTimer);sTimer=setInterval(()=>{
 if(left<=0){clearInterval(sTimer);running=false;finished=true;abClose();inkOff();$("bt").textContent="끝!";$("fb").textContent="집계 중... 잠시만요";report(true)}else{$("bt").textContent=fmt(left);if(left<=5&&left!==lastTk){lastTk=left;snd("tick")}}},250)}
 function sStop(){sp="stopped";abClose();inkOff();clearInterval(sTimer);running=false;finished=true;$("count").textContent="";$("bt").textContent="끝!";$("fb").textContent="집계 중... 잠시만요";report(true)}
 function sTap(w){if(!running||locked||picking)return;
-if(cards[tgC].s.includes(w)){const bonus=Math.min(streak,5)*2,base=eff.dbl>0?20:10;if(eff.dbl>0)eff.dbl--;if(eff.easy>0)eff.easy--;if(eff.small>0)eff.small--;score+=base+bonus;okN++;streak++;myC=tgC;tgC=nextId(myC);snd("ok",streak-1);$("fb").textContent="+"+(base+bonus);drawS(1,1);if(ABM&&streak%2===0)abOpen()}
+if(cards[tgC].s.includes(w)){const bonus=Math.min(streak,5)*2,base=eff.dbl>0?20:10;if(eff.dbl>0)eff.dbl--;if(eff.easy>0)eff.easy--;if(eff.small>0)eff.small--;if(eff.rot>0)eff.rot--;if(eff.scr>0)eff.scr--;score+=base+bonus;okN++;streak++;myC=tgC;tgC=nextId(myC);snd("ok",streak-1);$("fb").textContent="+"+(base+bonus);drawS(1,1);if(ABM&&streak%2===0)abOpen()}
 else{score=Math.max(0,score-5);badN++;streak=0;locked=true;snd("bad");$("fb").textContent="-5 틀렸어요!";$("bs").textContent=score+"점";$("bk").textContent="";
 const oc=$("own").firstChild;oc&&oc.classList.add("lock");setTimeout(()=>{locked=false;oc&&oc.classList.remove("lock");$("fb").textContent=""},1500)}
 report(false)}
